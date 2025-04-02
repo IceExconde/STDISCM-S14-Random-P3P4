@@ -28,18 +28,20 @@ public class Producer{
             }
         }
 
-        String[] videoFolders = {"videos1/", "videos2/", "videos3/"};
+        String[] videoFolders = {"videos1", "videos2", "videos3"};
 
+        //verify logic on this i think if there are more threads than folders other threads will upload on the same folder
         for (int i = 0; i < p && i < videoFolders.length; i++) {
-            String folderPath = videoFolders[i];
+            //idk if theres a better way to make folder path's relative i just based this on running in intellij
+            String folderPath = "P3/producer/" + videoFolders[i];
             new Thread(() -> startProducer(folderPath)).start();
         }
     }
 
     private static void startProducer(String folderPath) {
+        System.out.println("Attempting to read from: " + new File(folderPath).getAbsolutePath());
         File folder = new File(folderPath);
         File[] files = folder.listFiles((dir, name) -> name.endsWith(".mp4"));
-
         if (files != null) {
             for (File file : files) {
                 sendVideo(file);
