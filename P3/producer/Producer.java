@@ -29,7 +29,7 @@ public class Producer {
             }
         }
 
-        // // Download videos for each producer thread
+        // // download videos for each producer thread
         // System.out.println("Fetching music videos...");
         // for (int i = 1; i <= p; i++) {
         //     String folderPath = "P3/producer/videos" + i;
@@ -37,9 +37,13 @@ public class Producer {
         // }
         scanner.close(); // Close scanner to avoid resource leak
 
-        // Start producer threads
-        for (int i = 1; i <= p; i++) {
+         // dynamically create folders based on the number of producer threads
+         for (int i = 1; i <= p; i++) {
             String folderPath = "P3/producer/videos" + i;
+            File folder = new File(folderPath);
+            if (!folder.exists()) {
+                folder.mkdirs(); // Create folder if it does not exist
+            }
             new Thread(() -> startProducer(folderPath)).start();
         }
     }
