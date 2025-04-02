@@ -1,5 +1,6 @@
 package producer;
 
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -7,8 +8,8 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Scanner;
 
-public class Producer{
-    private static final String SERVER_HOST = "localhost"; //change for testing
+public class Producer {
+    private static final String SERVER_HOST = "localhost"; // Change for testing
     private static final int SERVER_PORT = 8081;
 
     public static void main(String[] args) {
@@ -28,12 +29,17 @@ public class Producer{
             }
         }
 
-        String[] videoFolders = {"videos1", "videos2", "videos3"};
+        // // Download videos for each producer thread
+        // System.out.println("Fetching music videos...");
+        // for (int i = 1; i <= p; i++) {
+        //     String folderPath = "P3/producer/videos" + i;
+        //     YouTubeDownloader.downloadYouTubeVideos(folderPath);
+        // }
+        scanner.close(); // Close scanner to avoid resource leak
 
-        //verify logic on this i think if there are more threads than folders other threads will upload on the same folder
-        for (int i = 0; i < p && i < videoFolders.length; i++) {
-            //idk if theres a better way to make folder path's relative i just based this on running in intellij
-            String folderPath = "P3/producer/" + videoFolders[i];
+        // Start producer threads
+        for (int i = 1; i <= p; i++) {
+            String folderPath = "P3/producer/videos" + i;
             new Thread(() -> startProducer(folderPath)).start();
         }
     }
@@ -50,19 +56,23 @@ public class Producer{
     }
 
     private static void sendVideo(File file) {
-        try (Socket socket = new Socket(SERVER_HOST, SERVER_PORT);
-             FileInputStream fis = new FileInputStream(file);
-             OutputStream os = socket.getOutputStream()) {
-
-            byte[] buffer = new byte[4096];
-            int bytesRead;
-            while ((bytesRead = fis.read(buffer)) != -1) {
-                os.write(buffer, 0, bytesRead);
+        try {
+            try (Socket socket = new Socket(SERVER_HOST, SERVER_PORT);
+                 FileInputStream fis = new FileInputStream(file);
+                 OutputStream os = socket.getOutputStream()) {
+                
+                DataOutputStream dos = new DataOutputStream(os);
+                dos.writeUTF(file.getName());
+                
+                byte[] buffer = new byte[4096];
+                int bytesRead;
+                while ((bytesRead = fis.read(buffer)) != -1) {
+                    os.write(buffer, 0, bytesRead);
+                }
+                System.out.println("Uploaded: " + file.getName());
             }
-            System.out.println("Uploaded: " + file.getName());
-
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Error uploading " + file.getName() + ": " + e.getMessage());
         }
     }
 }
