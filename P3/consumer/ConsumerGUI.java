@@ -18,11 +18,14 @@ import javafx.scene.media.MediaView;
 import javafx.util.Duration;
 import javafx.scene.image.WritableImage;
 import javafx.scene.SnapshotParameters;
-
 import java.io.File;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import javafx.animation.PauseTransition;
 
-public class ConsumerGUI extends javafx.application.Application {
+public class ConsumerGUI extends Application {
     private static final int THUMBNAIL_WIDTH = 320;
     private static final int THUMBNAIL_HEIGHT = 180;
     private static final int PREVIEW_SECONDS = 10;
@@ -30,15 +33,18 @@ public class ConsumerGUI extends javafx.application.Application {
 
     private static ConsumerGUI instance;
     private static BlockingQueue<File> videoQueue;
+    private static AtomicInteger droppedVideos;
 
     private Stage primaryStage;
     private ObservableList<File> videoList;
     private Label statusLabel;
     private Label queueStatusLabel;
+    private Label droppedVideosLabel;
     private FlowPane videoGridPane;
 
-    public static void launchGUI(BlockingQueue<File> queue) {
+    public static void launchGUI(BlockingQueue<File> queue, AtomicInteger droppedCounter) {
         videoQueue = queue;
+        droppedVideos = droppedCounter;
         new Thread(() -> Application.launch(ConsumerGUI.class)).start();
     }
 
@@ -72,6 +78,7 @@ public class ConsumerGUI extends javafx.application.Application {
         BorderPane root = new BorderPane();
         root.setPadding(new Insets(10));
     
+        // Top Header
         HBox headerBox = new HBox(10);
         headerBox.setPadding(new Insets(0, 0, 10, 0));
         headerBox.setAlignment(Pos.CENTER_LEFT);
@@ -82,6 +89,9 @@ public class ConsumerGUI extends javafx.application.Application {
         queueStatusLabel = new Label("Queue: 0/" + videoQueue.remainingCapacity());
         queueStatusLabel.setStyle("-fx-font-size: 14;");
         
+        droppedVideosLabel = new Label("Dropped: 0");
+        droppedVideosLabel.setStyle("-fx-font-size: 14; -fx-text-fill: red;");
+        
         Button exitButton = new Button("Exit");
         exitButton.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold;");
         exitButton.setOnAction(e -> handleExit());
@@ -89,14 +99,22 @@ public class ConsumerGUI extends javafx.application.Application {
         javafx.scene.layout.Region spacer = new javafx.scene.layout.Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
         
-        headerBox.getChildren().addAll(statusLabel, spacer, queueStatusLabel, exitButton);
+        headerBox.getChildren().addAll(
+            statusLabel, 
+            new Label(" | "), 
+            queueStatusLabel,
+            new Label(" | "),
+            droppedVideosLabel,
+            spacer, 
+            exitButton
+        );
         root.setTop(headerBox);
     
+        // Video Grid
         videoGridPane = new FlowPane();
         videoGridPane.setHgap(15);
         videoGridPane.setVgap(15);
         videoGridPane.setPadding(new Insets(10));
-        
         videoGridPane.setPrefWrapLength(CARDS_PER_ROW * (THUMBNAIL_WIDTH + 50)); 
         
         ScrollPane scrollPane = new ScrollPane(videoGridPane);
@@ -112,7 +130,6 @@ public class ConsumerGUI extends javafx.application.Application {
     }
 
     private void handleExit() {
-        // Show confirmation dialog
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Confirm Exit");
         alert.setHeaderText("Exit Application");
@@ -126,7 +143,6 @@ public class ConsumerGUI extends javafx.application.Application {
         alert.showAndWait().ifPresent(type -> {
             if (type == buttonTypeYes) {
                 updateStatus("Shutting down...");
-            
                 Platform.exit();
                 System.exit(0);
             }
@@ -137,7 +153,6 @@ public class ConsumerGUI extends javafx.application.Application {
         Platform.runLater(() -> {
             if (!videoList.contains(videoFile)) {
                 videoList.add(videoFile);
-
                 VideoCard videoCard = new VideoCard(videoFile);
                 videoGridPane.getChildren().add(videoCard);
             }
@@ -156,6 +171,12 @@ public class ConsumerGUI extends javafx.application.Application {
         });
     }
 
+    public void updateDroppedCount() {
+        Platform.runLater(() -> {
+            droppedVideosLabel.setText("Dropped: " + droppedVideos.get());
+        });
+    }
+
     public void showError(String message) {
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -170,11 +191,13 @@ public class ConsumerGUI extends javafx.application.Application {
         private final ImageView imageView = new ImageView();
         private final Label nameLabel = new Label();
         private final Button previewButton = new Button("Play Preview");
-        private final HBox buttonBox = new HBox(5, previewButton);
+        private final Button fullButton = new Button("Play Full");
+        private final HBox buttonBox = new HBox(5, previewButton, fullButton);
         private final ProgressIndicator progressIndicator = new ProgressIndicator();
         private Image thumbnailImage = null;
         private final File videoFile;
-
+        private boolean thumbnailLoaded = false;
+    
         public VideoCard(File videoFile) {
             this.videoFile = videoFile;
             
@@ -188,47 +211,72 @@ public class ConsumerGUI extends javafx.application.Application {
             imageView.setFitWidth(THUMBNAIL_WIDTH);
             imageView.setFitHeight(THUMBNAIL_HEIGHT);
             imageView.setPreserveRatio(true);
-
+    
             nameLabel.setText(videoFile.getName());
             nameLabel.setWrapText(true);
             nameLabel.setPadding(new Insets(5, 0, 5, 0));
             nameLabel.setStyle("-fx-font-weight: bold;");
             
-            buttonBox.setAlignment(javafx.geometry.Pos.CENTER);
-            
+            buttonBox.setAlignment(Pos.CENTER);
             setSpacing(8);
             
             getChildren().addAll(imageView, nameLabel, buttonBox, progressIndicator);
             
             previewButton.setOnAction(e -> showPreview(videoFile));
+            fullButton.setOnAction(e -> playFullVideo(videoFile));
             
-            loadThumbnail();
+            loadThumbnailWithRetry(3); // Try 3 times to load thumbnail
         }
         
-        private void loadThumbnail() {
+        private void loadThumbnailWithRetry(int remainingAttempts) {
+            if (thumbnailLoaded || remainingAttempts <= 0) {
+                Platform.runLater(() -> {
+                    if (!thumbnailLoaded) {
+                        setFallbackThumbnail();
+                    }
+                    getChildren().remove(progressIndicator);
+                });
+                return;
+            }
+    
             new Thread(() -> {
                 Image thumbnail = extractFirstFrame(videoFile);
                 Platform.runLater(() -> {
                     if (thumbnail != null) {
                         thumbnailImage = thumbnail;
                         imageView.setImage(thumbnail);
+                        thumbnailLoaded = true;
                         getChildren().remove(progressIndicator);
                     } else {
-                        try {
-                            thumbnailImage = new Image("file:resources/video-icon.png");
-                            imageView.setImage(thumbnailImage);
-                        } catch (Exception e) {
-                            try {
-                                thumbnailImage = new Image(getClass().getResourceAsStream("/video-icon.png"));
-                                imageView.setImage(thumbnailImage);
-                            } catch (Exception ex) {
-                                imageView.setStyle("-fx-background-color: #cccccc;");
-                            }
+                        // Retry after a delay if attempts remain
+                        if (remainingAttempts > 1) {
+                            PauseTransition delay = new PauseTransition(Duration.seconds(1));
+                            delay.setOnFinished(event -> loadThumbnailWithRetry(remainingAttempts - 1));
+                            delay.play();
+                        } else {
+                            setFallbackThumbnail();
+                            getChildren().remove(progressIndicator);
                         }
-                        getChildren().remove(progressIndicator);
                     }
                 });
             }).start();
+        }
+    
+        private void setFallbackThumbnail() {
+            try {
+                // Try to load from resources folder first
+                thumbnailImage = new Image(getClass().getResourceAsStream("/video-icon.png"));
+                imageView.setImage(thumbnailImage);
+            } catch (Exception e) {
+                try {
+                    // Try to load from file system
+                    thumbnailImage = new Image("file:resources/video-icon.png");
+                    imageView.setImage(thumbnailImage);
+                } catch (Exception ex) {
+                    // Final fallback - just show a colored background
+                    imageView.setStyle("-fx-background-color: #cccccc;");
+                }
+            }
         }
     }
 
@@ -312,25 +360,30 @@ public class ConsumerGUI extends javafx.application.Application {
         try {
             Media media = new Media(videoFile.toURI().toString());
             MediaPlayer mediaPlayer = new MediaPlayer(media);
-            mediaPlayer.setMute(true); 
+            mediaPlayer.setMute(true);
 
-            java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(1);
+            CountDownLatch latch = new CountDownLatch(1);
             final Image[] thumbnail = new Image[1];
             
             mediaPlayer.setOnReady(() -> {
                 try {
-                    WritableImage image = new WritableImage(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
-                    
-                    MediaView mediaView = new MediaView(mediaPlayer);
-                    mediaView.setFitWidth(THUMBNAIL_WIDTH);
-                    mediaView.setFitHeight(THUMBNAIL_HEIGHT);
-                    
-                    mediaPlayer.seek(Duration.seconds(5));
-                    
-                    Thread.sleep(100);
-                    
-                    mediaView.snapshot(new SnapshotParameters(), image);
-                    thumbnail[0] = image;
+                    // Try multiple positions if first attempt fails
+                    for (int i = 0; i < 3; i++) {
+                        mediaPlayer.seek(Duration.seconds(10));
+                        
+                        // Give it time to seek
+                        Thread.sleep(200);
+                        
+                        WritableImage image = new WritableImage(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
+                        MediaView mediaView = new MediaView(mediaPlayer);
+                        mediaView.setFitWidth(THUMBNAIL_WIDTH);
+                        mediaView.setFitHeight(THUMBNAIL_HEIGHT);
+                        
+                        if (mediaView.snapshot(new SnapshotParameters(), image) != null) {
+                            thumbnail[0] = image;
+                            break;
+                        }
+                    }
                 } catch (Exception e) {
                     System.err.println("Error capturing thumbnail: " + e.getMessage());
                 } finally {
@@ -340,12 +393,10 @@ public class ConsumerGUI extends javafx.application.Application {
             });
             
             mediaPlayer.play();
-            
-            latch.await(5, java.util.concurrent.TimeUnit.SECONDS);
-            
+            latch.await(10, TimeUnit.SECONDS); // Longer timeout for multiple attempts
             return thumbnail[0];
         } catch (Exception e) {
-            System.err.println("Error extracting first frame: " + e.getMessage());
+            System.err.println("Error extracting frame: " + e.getMessage());
             return null;
         }
     }

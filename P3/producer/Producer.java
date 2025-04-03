@@ -1,83 +1,106 @@
 package producer;
 
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.Scanner;
 
 public class Producer {
-    private static final String SERVER_HOST = "localhost"; // Change for testing
+    private static final String SERVER_HOST = "localhost";
     private static final int SERVER_PORT = 8081;
+    private static final int CONNECTION_TIMEOUT_MS = 5000;
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        String input;
-        int p;
+        int p = getValidThreadCount(scanner);
+        scanner.close();
 
-        while (true) {
-            System.out.print("Enter number of producer threads: ");
-            input = scanner.nextLine();  // Read input as a string
-
-            if (IntegerValidator.isValidPositiveInteger(input)) {
-                p = Integer.parseInt(input);
-                break;
-            } else {
-                System.out.println("Error: Invalid input. Please enter a valid integer >= 1.");
-            }
-        }
-
-        // // download videos for each producer thread
-        // System.out.println("Fetching music videos...");
-        // for (int i = 1; i <= p; i++) {
-        //     String folderPath = "P3/producer/videos" + i;
-        //     YouTubeDownloader.downloadYouTubeVideos(folderPath);
-        // }
-        scanner.close(); // Close scanner to avoid resource leak
-
-         // dynamically create folders based on the number of producer threads
-         for (int i = 1; i <= p; i++) {
+        for (int i = 1; i <= p; i++) {
             String folderPath = "P3/producer/videos" + i;
             File folder = new File(folderPath);
             if (!folder.exists()) {
-                folder.mkdirs(); // Create folder if it does not exist
+                folder.mkdirs();
             }
             new Thread(() -> startProducer(folderPath)).start();
         }
     }
 
+    private static int getValidThreadCount(Scanner scanner) {
+        while (true) {
+            System.out.print("Enter number of producer threads: ");
+            String input = scanner.nextLine();
+            
+            if (IntegerValidator.isValidPositiveInteger(input)) {
+                return Integer.parseInt(input);
+            }
+            System.out.println("Error: Invalid input. Please enter a valid integer >= 1.");
+        }
+    }
+
     private static void startProducer(String folderPath) {
-        System.out.println("Attempting to read from: " + new File(folderPath).getAbsolutePath());
         File folder = new File(folderPath);
         File[] files = folder.listFiles((dir, name) -> name.endsWith(".mp4"));
+        
         if (files != null) {
             for (File file : files) {
-                sendVideo(file);
+                sendVideoWithRetry(file, 3);
+                try {
+                    // Add delay between videos to simulate real-world scenario
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
             }
         }
     }
 
-    private static void sendVideo(File file) {
-        try {
-            try (Socket socket = new Socket(SERVER_HOST, SERVER_PORT);
-                FileInputStream fis = new FileInputStream(file);
-                OutputStream os = socket.getOutputStream()) {
-                
-                DataOutputStream dos = new DataOutputStream(os);
-                dos.writeUTF(file.getName());
-                System.out.println(Thread.currentThread().getName() + " uploading: " + file.getName());
-                
-                byte[] buffer = new byte[4096];
-                int bytesRead;
-                while ((bytesRead = fis.read(buffer)) != -1) {
-                    os.write(buffer, 0, bytesRead);
+    private static void sendVideoWithRetry(File file, int maxRetries) {
+        int attempts = 0;
+        while (attempts < maxRetries) {
+            try {
+                sendVideo(file);
+                return;
+            } catch (SocketException e) {
+                // Connection rejected (queue full)
+                System.out.println("Video rejected (queue full): " + file.getName());
+                return;
+            } catch (IOException e) {
+                attempts++;
+                System.err.println("Attempt " + attempts + " failed for " + file.getName() + ": " + e.getMessage());
+                if (attempts < maxRetries) {
+                    try {
+                        Thread.sleep(1000 * attempts);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        return;
+                    }
                 }
-                System.out.println("Uploaded: " + file.getName());
             }
-        } catch (IOException e) {
-            System.err.println("Error uploading " + file.getName() + ": " + e.getMessage());
+        }
+        System.err.println("Failed to upload " + file.getName() + " after " + maxRetries + " attempts");
+    }
+
+    private static void sendVideo(File file) throws IOException {
+        try (Socket socket = new Socket(SERVER_HOST, SERVER_PORT);
+             FileInputStream fis = new FileInputStream(file);
+             OutputStream os = socket.getOutputStream()) {
+            
+            socket.setSoTimeout(CONNECTION_TIMEOUT_MS);
+            DataOutputStream dos = new DataOutputStream(os);
+            dos.writeUTF(file.getName());
+            
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = fis.read(buffer)) != -1) {
+                os.write(buffer, 0, bytesRead);
+                
+                // Check if connection was closed by server (queue full)
+                if (socket.isClosed() || socket.isOutputShutdown()) {
+                    throw new SocketException("Connection closed by server");
+                }
+            }
+            System.out.println(Thread.currentThread().getName() + " uploaded: " + file.getName());
         }
     }
 }
