@@ -62,11 +62,12 @@ public class Producer {
     private static void sendVideo(File file) {
         try {
             try (Socket socket = new Socket(SERVER_HOST, SERVER_PORT);
-                 FileInputStream fis = new FileInputStream(file);
-                 OutputStream os = socket.getOutputStream()) {
+                FileInputStream fis = new FileInputStream(file);
+                OutputStream os = socket.getOutputStream()) {
                 
                 DataOutputStream dos = new DataOutputStream(os);
                 dos.writeUTF(file.getName());
+                System.out.println(Thread.currentThread().getName() + " uploading: " + file.getName());
                 
                 byte[] buffer = new byte[4096];
                 int bytesRead;
