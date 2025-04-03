@@ -8,9 +8,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class Consumer {
     public static final int SERVER_PORT = 8081;
-    public static final int MAX_QUEUE_LENGTH = 2;
-    public static final int PROCESSING_RATE_MS = 2000; // Process one video every 2 seconds
-    public static final String SAVE_FOLDER = "P3/consumer/videos/";
+    public static int MAX_QUEUE_LENGTH = 2; 
+    public static int PROCESSING_RATE_MS = 500; 
+    public static String SAVE_FOLDER = "P3/consumer/videos/";
+    public static int CONSUMER_THREADS = 1; 
 
     public static BlockingQueue<File> videoQueue;
     public static AtomicInteger droppedVideos = new AtomicInteger(0);
@@ -28,7 +29,6 @@ public class Consumer {
     public static void startConsumerServer() {
         videoQueue = new LinkedBlockingQueue<>(MAX_QUEUE_LENGTH);
         
-        // Initialize JavaFX GUI
         ConsumerGUI.launchGUI(videoQueue, droppedVideos);
         gui = ConsumerGUI.getInstance();
 
@@ -38,35 +38,40 @@ public class Consumer {
             return;
         }
 
-        // Leaky bucket processing at fixed rate
-        leakyBucket = Executors.newScheduledThreadPool(1);
-        leakyBucket.scheduleAtFixedRate(() -> {
-            try {
-                if (!videoQueue.isEmpty()) {
-                    File video = videoQueue.take();
-                    processVideo(video);
-                    gui.updateQueueStatus();
-                    
-                    // Check if we can start accepting connections again
-                    synchronized (Consumer.class) {
-                        if (!acceptConnections && videoQueue.size() < MAX_QUEUE_LENGTH) {
-                            acceptConnections = true;
-                            gui.updateStatus("Ready to accept new videos");
+        // Leaky bucket processing with configurable threads
+        leakyBucket = Executors.newScheduledThreadPool(CONSUMER_THREADS);
+        for (int i = 0; i < CONSUMER_THREADS; i++) {
+            leakyBucket.scheduleAtFixedRate(() -> {
+                try {
+                    if (!videoQueue.isEmpty()) {
+                        File video = videoQueue.take();
+                        processVideo(video);
+                        gui.updateQueueStatus();
+                        
+                        // Check if we can start accepting connections again
+                        synchronized (Consumer.class) {
+                            if (!acceptConnections && videoQueue.size() < MAX_QUEUE_LENGTH) {
+                                acceptConnections = true;
+                                gui.updateStatus("Ready to accept new videos");
+                            }
                         }
                     }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    gui.showError("Processing interrupted: " + e.getMessage());
                 }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                gui.showError("Processing interrupted: " + e.getMessage());
-            }
-        }, 0, PROCESSING_RATE_MS, TimeUnit.MILLISECONDS);
+            }, 0, PROCESSING_RATE_MS, TimeUnit.MILLISECONDS);
+        }
 
         // Connection handling thread pool
         ExecutorService connectionPool = Executors.newFixedThreadPool(10);
 
         try {
             serverSocket = new ServerSocket(SERVER_PORT);
-            gui.updateStatus("Consumer is listening on port " + SERVER_PORT);
+            gui.updateStatus(String.format(
+                "Consumer is listening on port %d with %d threads (Queue size: %d)", 
+                SERVER_PORT, CONSUMER_THREADS, MAX_QUEUE_LENGTH
+            ));
 
             while (!Thread.currentThread().isInterrupted()) {
                 synchronized (Consumer.class) {
@@ -101,6 +106,59 @@ public class Consumer {
         }
     }
 
+    // Update configuration from GUI
+    public static void updateConfiguration(int threads, int queueSize) {
+        CONSUMER_THREADS = threads;
+        MAX_QUEUE_LENGTH = queueSize;
+        
+        // Reinitialize queue with new size
+        BlockingQueue<File> newQueue = new LinkedBlockingQueue<>(MAX_QUEUE_LENGTH);
+        while (!videoQueue.isEmpty()) {
+            try {
+                newQueue.put(videoQueue.take());
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+        }
+        videoQueue = newQueue;
+        gui.updateQueueMaxSize(MAX_QUEUE_LENGTH); // Add this line
+        gui.updateQueueStatus();
+
+        // Restart consumer threads
+        if (leakyBucket != null) {
+            leakyBucket.shutdown();
+        }
+        leakyBucket = Executors.newScheduledThreadPool(CONSUMER_THREADS);
+        for (int i = 0; i < CONSUMER_THREADS; i++) {
+            leakyBucket.scheduleAtFixedRate(() -> {
+                try {
+                    if (!videoQueue.isEmpty()) {
+                        File video = videoQueue.take();
+                        processVideo(video);
+                        gui.updateQueueStatus();
+                        
+                        synchronized (Consumer.class) {
+                            if (!acceptConnections && videoQueue.size() < MAX_QUEUE_LENGTH) {
+                                acceptConnections = true;
+                                gui.updateStatus("Ready to accept new videos");
+                            }
+                        }
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    gui.showError("Processing interrupted: " + e.getMessage());
+                }
+            }, 0, 500, TimeUnit.MILLISECONDS);
+        }
+    
+        gui.updateStatus(String.format(
+            "Configuration updated: %d threads, queue size %d, processing rate %dms", 
+            CONSUMER_THREADS, MAX_QUEUE_LENGTH, PROCESSING_RATE_MS
+        ));
+    }
+
+    // Rest of the methods remain the same...
     private static void handleUpload(Socket socket) {
         File tempFile = null;
         try {
@@ -195,5 +253,32 @@ public class Consumer {
             Thread.currentThread().interrupt();
             gui.showError("Processing interrupted for: " + video.getName());
         }
+    }
+
+    public static void clearAllVideos() {
+        // Clear the queue
+        videoQueue.clear();
+        
+        // Delete all files in the save folder
+        File saveDir = new File(SAVE_FOLDER);
+        if (saveDir.exists()) {
+            File[] files = saveDir.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (!file.delete()) {
+                        System.err.println("Failed to delete: " + file.getAbsolutePath());
+                    }
+                }
+            }
+        }
+        
+        // Update GUI
+        gui.clearVideoDisplay();
+        gui.updateQueueStatus();
+        gui.updateStatus("All videos cleared");
+    }
+
+    public static int getQueueSize() {
+        return videoQueue.size();
     }
 }

@@ -30,6 +30,7 @@ public class ConsumerGUI extends Application {
     private static final int THUMBNAIL_HEIGHT = 180;
     private static final int PREVIEW_SECONDS = 10;
     private static final int CARDS_PER_ROW = 5;
+    private int maxQueueSize = Consumer.MAX_QUEUE_LENGTH;
 
     private static ConsumerGUI instance;
     private static BlockingQueue<File> videoQueue;
@@ -77,6 +78,30 @@ public class ConsumerGUI extends Application {
     
         BorderPane root = new BorderPane();
         root.setPadding(new Insets(10));
+
+        // Configuration Panel
+        HBox configPanel = new HBox(10);
+        configPanel.setPadding(new Insets(0, 0, 10, 0));
+        
+        Label threadsLabel = new Label("Consumer Threads:");
+        Spinner<Integer> threadsSpinner = new Spinner<>(1, 10, Consumer.CONSUMER_THREADS);
+        
+        Label queueLabel = new Label("Max Queue Size:");
+        Spinner<Integer> queueSpinner = new Spinner<>(1, 100, Consumer.MAX_QUEUE_LENGTH);
+        
+        Button applyButton = new Button("Apply");
+        applyButton.setOnAction(e -> {
+            Consumer.updateConfiguration(
+                threadsSpinner.getValue(),
+                queueSpinner.getValue()
+            );
+        });
+        
+        configPanel.getChildren().addAll(
+            threadsLabel, threadsSpinner,
+            queueLabel, queueSpinner,
+            applyButton
+        );
     
         // Top Header
         HBox headerBox = new HBox(10);
@@ -105,10 +130,28 @@ public class ConsumerGUI extends Application {
             queueStatusLabel,
             new Label(" | "),
             droppedVideosLabel,
-            spacer, 
+            spacer,         
             exitButton
         );
-        root.setTop(headerBox);
+        VBox topContainer = new VBox(configPanel, headerBox);
+        root.setTop(topContainer);
+
+        Button clearButton = new Button("Clear All Videos");
+        clearButton.setStyle("-fx-background-color: #f39c12; -fx-text-fill: white;");
+        clearButton.setOnAction(e -> {
+            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+            confirm.setTitle("Confirm Clear");
+            confirm.setHeaderText("Clear All Videos");
+            confirm.setContentText("Are you sure you want to delete all saved videos?");
+    
+            confirm.showAndWait().ifPresent(response -> {
+                if (response == ButtonType.OK) {
+                    Consumer.clearAllVideos();
+                }
+            });
+        });
+
+        configPanel.getChildren().add(clearButton);
     
         // Video Grid
         videoGridPane = new FlowPane();
@@ -165,9 +208,8 @@ public class ConsumerGUI extends Application {
 
     public void updateQueueStatus() {
         Platform.runLater(() -> {
-            int currentSize = videoQueue.size();
-            int maxSize = videoQueue.remainingCapacity() + currentSize;
-            queueStatusLabel.setText("Queue: " + currentSize + "/" + maxSize);
+            int currentSize = Consumer.getQueueSize();
+            queueStatusLabel.setText("Queue: " + currentSize + "/" + maxQueueSize);
         });
     }
 
@@ -372,7 +414,7 @@ public class ConsumerGUI extends Application {
                         mediaPlayer.seek(Duration.seconds(10));
                         
                         // Give it time to seek
-                        Thread.sleep(200);
+                        Thread.sleep(500);
                         
                         WritableImage image = new WritableImage(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
                         MediaView mediaView = new MediaView(mediaPlayer);
@@ -393,11 +435,24 @@ public class ConsumerGUI extends Application {
             });
             
             mediaPlayer.play();
-            latch.await(10, TimeUnit.SECONDS); // Longer timeout for multiple attempts
+            latch.await(15, TimeUnit.SECONDS); // Longer timeout for multiple attempts
             return thumbnail[0];
         } catch (Exception e) {
             System.err.println("Error extracting frame: " + e.getMessage());
             return null;
         }
+    }
+
+    public void clearVideoDisplay() {
+        Platform.runLater(() -> {
+            videoList.clear();
+            videoGridPane.getChildren().clear();
+        });
+    }
+
+    public void updateQueueMaxSize(int newMaxSize) {
+        Platform.runLater(() -> {
+            maxQueueSize = newMaxSize;
+        });
     }
 }
