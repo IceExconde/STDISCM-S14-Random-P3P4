@@ -24,12 +24,14 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import javafx.animation.PauseTransition;
+import javafx.scene.input.MouseEvent;
 
 public class ConsumerGUI extends Application {
     private static final int THUMBNAIL_WIDTH = 320;
     private static final int THUMBNAIL_HEIGHT = 180;
     private static final int PREVIEW_SECONDS = 10;
     private static final int CARDS_PER_ROW = 5;
+    private static final int HOVER_PREVIEW_DELAY_MS = 500;
     private int maxQueueSize = Consumer.MAX_QUEUE_LENGTH;
 
     private static ConsumerGUI instance;
@@ -239,6 +241,9 @@ public class ConsumerGUI extends Application {
         private Image thumbnailImage = null;
         private final File videoFile;
         private boolean thumbnailLoaded = false;
+        private PauseTransition hoverDelay;
+        private Stage hoverPreviewStage;
+        private MediaPlayer hoverMediaPlayer;
     
         public VideoCard(File videoFile) {
             this.videoFile = videoFile;
@@ -267,7 +272,8 @@ public class ConsumerGUI extends Application {
             previewButton.setOnAction(e -> showPreview(videoFile));
             fullButton.setOnAction(e -> playFullVideo(videoFile));
             
-            loadThumbnailWithRetry(3); // Try 3 times to load thumbnail
+            setupHoverPreview();
+            loadThumbnailWithRetry(5); // Try 3 times to load thumbnail
         }
         
         private void loadThumbnailWithRetry(int remainingAttempts) {
@@ -303,7 +309,89 @@ public class ConsumerGUI extends Application {
                 });
             }).start();
         }
-    
+        
+        private void setupHoverPreview() {
+            hoverDelay = new PauseTransition(Duration.millis(HOVER_PREVIEW_DELAY_MS));
+            hoverDelay.setOnFinished(event -> showHoverPreview());
+            
+            this.setOnMouseEntered(e -> {
+                if (hoverPreviewStage == null || !hoverPreviewStage.isShowing()) {
+                    hoverDelay.playFromStart();
+                }
+            });
+            
+            this.setOnMouseExited(e -> {
+                hoverDelay.stop();
+                closeHoverPreview();
+            });
+        }
+        
+        private void showHoverPreview() {
+            try {
+                if (hoverPreviewStage != null && hoverPreviewStage.isShowing()) {
+                    return;
+                }
+                
+                Media media = new Media(videoFile.toURI().toString());
+                hoverMediaPlayer = new MediaPlayer(media);
+                MediaView mediaView = new MediaView(hoverMediaPlayer);
+                
+                hoverPreviewStage = new Stage();
+                hoverPreviewStage.initOwner(primaryStage);
+                hoverPreviewStage.setTitle("Preview: " + videoFile.getName());
+                
+                // Set smaller size for hover preview
+                mediaView.setFitWidth(THUMBNAIL_WIDTH * 1.5);
+                mediaView.setFitHeight(THUMBNAIL_HEIGHT * 1.5);
+                
+                StackPane root = new StackPane(mediaView);
+                Scene scene = new Scene(root);
+                
+                hoverPreviewStage.setScene(scene);
+                
+                // Position the preview near the mouse
+                hoverPreviewStage.setX(primaryStage.getX() + 50);
+                hoverPreviewStage.setY(primaryStage.getY() + 50);
+                
+                hoverPreviewStage.setOnCloseRequest(event -> {
+                    hoverMediaPlayer.stop();
+                    hoverMediaPlayer.dispose();
+                });
+                
+                hoverMediaPlayer.setCycleCount(1);
+                hoverMediaPlayer.setAutoPlay(true);
+                hoverMediaPlayer.setMute(false);
+                
+                // Stop after PREVIEW_SECONDS
+                hoverMediaPlayer.setOnReady(() -> {
+                    hoverMediaPlayer.seek(Duration.ZERO);
+                    PauseTransition stopDelay = new PauseTransition(Duration.seconds(PREVIEW_SECONDS));
+                    stopDelay.setOnFinished(e -> {
+                        if (hoverPreviewStage != null) {
+                            hoverPreviewStage.close();
+                        }
+                    });
+                    stopDelay.play();
+                });
+                
+                hoverPreviewStage.show();
+            } catch (Exception e) {
+                System.err.println("Error showing hover preview: " + e.getMessage());
+            }
+        }
+        
+        private void closeHoverPreview() {
+            if (hoverPreviewStage != null) {
+                hoverPreviewStage.close();
+                hoverPreviewStage = null;
+            }
+            if (hoverMediaPlayer != null) {
+                hoverMediaPlayer.stop();
+                hoverMediaPlayer.dispose();
+                hoverMediaPlayer = null;
+            }
+        }
+
         private void setFallbackThumbnail() {
             try {
                 // Try to load from resources folder first

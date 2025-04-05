@@ -6,7 +6,8 @@ import java.net.SocketException;
 import java.util.Scanner;
 
 public class Producer {
-    private static final String SERVER_HOST = "localhost";
+    //private static final String SERVER_HOST = "10.255.234.230";
+    private static final String SERVER_HOST = "localhost"; // For local testing
     private static final int SERVER_PORT = 8081;
     private static final int CONNECTION_TIMEOUT_MS = 5000;
 

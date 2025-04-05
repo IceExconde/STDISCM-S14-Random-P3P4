@@ -153,8 +153,8 @@ public class Consumer {
         }
     
         gui.updateStatus(String.format(
-            "Configuration updated: %d threads, queue size %d, processing rate %dms", 
-            CONSUMER_THREADS, MAX_QUEUE_LENGTH, PROCESSING_RATE_MS
+            "Configuration updated: %d threads, queue size %d", 
+            CONSUMER_THREADS, MAX_QUEUE_LENGTH
         ));
     }
 
