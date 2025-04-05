@@ -31,10 +31,13 @@ public class Producer {
             System.out.print("Enter number of producer threads: ");
             String input = scanner.nextLine();
             
-            if (IntegerValidator.isValidPositiveInteger(input)) {
+            if (IntegerValidator.exceedsIntegerLimit(input)) {
+                System.out.println("Error: Input exceeds maximum value for an integer (" + Integer.MAX_VALUE + ").");
+            } else if (IntegerValidator.isValidPositiveInteger(input)) {
                 return Integer.parseInt(input);
+            } else {
+                System.out.println("Error: Invalid input. Please enter a valid integer >= 1.");
             }
-            System.out.println("Error: Invalid input. Please enter a valid integer >= 1.");
         }
     }
 

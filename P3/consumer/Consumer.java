@@ -42,11 +42,14 @@ public class Consumer {
         while (true) {
             System.out.print("Enter number of consumer threads: ");
             String input = scanner.nextLine();
-            
-            if (IntegerValidator.isValidPositiveInteger(input)) {
+    
+            if (IntegerValidator.exceedsIntegerLimit(input)) {
+                System.out.println("Error: Input exceeds maximum value for an integer (" + Integer.MAX_VALUE + ").");
+            } else if (IntegerValidator.isValidPositiveInteger(input)) {
                 return Integer.parseInt(input);
+            } else {
+                System.out.println("Error: Invalid input. Please enter a valid integer >= 1.");
             }
-            System.out.println("Error: Invalid input. Please enter a valid integer >= 1.");
         }
     }
     
@@ -54,13 +57,17 @@ public class Consumer {
         while (true) {
             System.out.print("Enter max queue length: ");
             String input = scanner.nextLine();
-            
-            if (IntegerValidator.isValidPositiveInteger(input)) {
+    
+            if (IntegerValidator.exceedsIntegerLimit(input)) {
+                System.out.println("Error: Input exceeds maximum value for an integer (" + Integer.MAX_VALUE + ").");
+            } else if (IntegerValidator.isValidPositiveInteger(input)) {
                 return Integer.parseInt(input);
+            } else {
+                System.out.println("Error: Invalid input. Please enter a valid integer >= 1.");
             }
-            System.out.println("Error: Invalid input. Please enter a valid integer >= 1.");
         }
     }
+    
     
     public static void startConsumerServer() {
         videoQueue = new LinkedBlockingQueue<>(MAX_QUEUE_LENGTH);
