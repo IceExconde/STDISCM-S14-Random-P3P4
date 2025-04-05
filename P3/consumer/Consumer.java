@@ -3,27 +3,63 @@ package consumer;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
+import java.util.Scanner;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Consumer {
     public static final int SERVER_PORT = 8081;
-    public static int MAX_QUEUE_LENGTH = 2; 
     public static int PROCESSING_RATE_MS = 500; 
     public static String SAVE_FOLDER = "P3/consumer/videos/";
-    public static int CONSUMER_THREADS = 1; 
 
-    public static BlockingQueue<File> videoQueue;
+    private static volatile BlockingQueue<File> videoQueue;
+    private static volatile ScheduledExecutorService leakyBucket;
     public static AtomicInteger droppedVideos = new AtomicInteger(0);
     private static ConsumerGUI gui;
-    private static ScheduledExecutorService leakyBucket;
     private static ServerSocket serverSocket;
-    private static volatile boolean acceptConnections = true;
+    private static final ReentrantLock queueLock = new ReentrantLock();
+    public static int CONSUMER_THREADS;
+    public static int MAX_QUEUE_LENGTH;
+    private static Semaphore queueSlots;
 
     public static void main(String[] args) {
-        new Thread(() -> {
-            startConsumerServer();
-        }).start();
+        Scanner scanner = new Scanner(System.in);
+    
+        int threads = getValidThreadCount(scanner);
+        int queueSize = getValidQueueSize(scanner);
+        scanner.close();
+    
+        CONSUMER_THREADS = threads;
+        MAX_QUEUE_LENGTH = queueSize;
+        queueSlots = new Semaphore(MAX_QUEUE_LENGTH);
+    
+        new Thread(() -> startConsumerServer()).start();
+    }
+
+    private static int getValidThreadCount(Scanner scanner) {
+        while (true) {
+            System.out.print("Enter number of consumer threads: ");
+            String input = scanner.nextLine();
+            
+            if (IntegerValidator.isValidPositiveInteger(input)) {
+                return Integer.parseInt(input);
+            }
+            System.out.println("Error: Invalid input. Please enter a valid integer >= 1.");
+        }
+    }
+    
+    private static int getValidQueueSize(Scanner scanner) {
+        while (true) {
+            System.out.print("Enter max queue length: ");
+            String input = scanner.nextLine();
+            
+            if (IntegerValidator.isValidPositiveInteger(input)) {
+                return Integer.parseInt(input);
+            }
+            System.out.println("Error: Invalid input. Please enter a valid integer >= 1.");
+        }
     }
     
     public static void startConsumerServer() {
@@ -43,18 +79,11 @@ public class Consumer {
         for (int i = 0; i < CONSUMER_THREADS; i++) {
             leakyBucket.scheduleAtFixedRate(() -> {
                 try {
-                    if (!videoQueue.isEmpty()) {
-                        File video = videoQueue.take();
+                    File video = videoQueue.poll(100, TimeUnit.MILLISECONDS);
+                    if (video != null) {
                         processVideo(video);
+                        queueSlots.release();
                         gui.updateQueueStatus();
-                        
-                        // Check if we can start accepting connections again
-                        synchronized (Consumer.class) {
-                            if (!acceptConnections && videoQueue.size() < MAX_QUEUE_LENGTH) {
-                                acceptConnections = true;
-                                gui.updateStatus("Ready to accept new videos");
-                            }
-                        }
                     }
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
@@ -74,25 +103,10 @@ public class Consumer {
             ));
 
             while (!Thread.currentThread().isInterrupted()) {
-                synchronized (Consumer.class) {
-                    if (!acceptConnections) {
-                        Thread.sleep(100);
-                        continue;
-                    }
-                }
-
-                // Check queue before accepting
-                if (videoQueue.size() >= MAX_QUEUE_LENGTH) {
-                    synchronized (Consumer.class) {
-                        acceptConnections = false;
-                    }
-                    continue;
-                }
-
                 Socket socket = serverSocket.accept();
                 connectionPool.execute(() -> handleUpload(socket));
             }
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             gui.showError("Server error: " + e.getMessage());
             e.printStackTrace();
         } finally {
@@ -106,144 +120,142 @@ public class Consumer {
         }
     }
 
-    // Update configuration from GUI
     public static void updateConfiguration(int threads, int queueSize) {
-        CONSUMER_THREADS = threads;
-        MAX_QUEUE_LENGTH = queueSize;
-        
-        // Reinitialize queue with new size
-        BlockingQueue<File> newQueue = new LinkedBlockingQueue<>(MAX_QUEUE_LENGTH);
-        while (!videoQueue.isEmpty()) {
-            try {
-                newQueue.put(videoQueue.take());
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                return;
-            }
-        }
-        videoQueue = newQueue;
-        gui.updateQueueMaxSize(MAX_QUEUE_LENGTH); // Add this line
-        gui.updateQueueStatus();
-
-        // Restart consumer threads
-        if (leakyBucket != null) {
-            leakyBucket.shutdown();
-        }
-        leakyBucket = Executors.newScheduledThreadPool(CONSUMER_THREADS);
-        for (int i = 0; i < CONSUMER_THREADS; i++) {
-            leakyBucket.scheduleAtFixedRate(() -> {
+        queueLock.lock();
+        try {
+            CONSUMER_THREADS = threads;
+            MAX_QUEUE_LENGTH = queueSize;
+    
+            // Reinitialize queue and semaphore with new size
+            BlockingQueue<File> newQueue = new LinkedBlockingQueue<>(MAX_QUEUE_LENGTH);
+            videoQueue.drainTo(newQueue);
+            videoQueue = newQueue;
+            queueSlots = new Semaphore(MAX_QUEUE_LENGTH);
+    
+            // Restart consumer threads
+            if (leakyBucket != null && !leakyBucket.isShutdown()) {
+                leakyBucket.shutdownNow();
                 try {
-                    if (!videoQueue.isEmpty()) {
-                        File video = videoQueue.take();
-                        processVideo(video);
-                        gui.updateQueueStatus();
-                        
-                        synchronized (Consumer.class) {
-                            if (!acceptConnections && videoQueue.size() < MAX_QUEUE_LENGTH) {
-                                acceptConnections = true;
-                                gui.updateStatus("Ready to accept new videos");
-                            }
-                        }
-                    }
+                    leakyBucket.awaitTermination(2, TimeUnit.SECONDS);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
-                    gui.showError("Processing interrupted: " + e.getMessage());
+                    gui.showError("Failed to terminate old consumer threads: " + e.getMessage());
                 }
-            }, 0, 500, TimeUnit.MILLISECONDS);
-        }
+            }
     
-        gui.updateStatus(String.format(
-            "Configuration updated: %d threads, queue size %d", 
-            CONSUMER_THREADS, MAX_QUEUE_LENGTH
-        ));
+            leakyBucket = Executors.newScheduledThreadPool(CONSUMER_THREADS);
+            for (int i = 0; i < CONSUMER_THREADS; i++) {
+                leakyBucket.scheduleAtFixedRate(() -> {
+                    try {
+                        File video = videoQueue.poll(100, TimeUnit.MILLISECONDS);
+                        if (video != null) {
+                            processVideo(video);
+                            queueSlots.release();
+                            gui.updateQueueStatus();
+                        }
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        gui.showError("Processing interrupted: " + e.getMessage());
+                    }
+                }, 0, PROCESSING_RATE_MS, TimeUnit.MILLISECONDS);
+            }
+    
+            gui.updateStatus(String.format(
+                "Configuration updated: %d threads, queue size %d",
+                CONSUMER_THREADS, MAX_QUEUE_LENGTH
+            ));
+            gui.updateQueueMaxSize(MAX_QUEUE_LENGTH);
+            gui.updateQueueStatus();
+        } finally {
+            queueLock.unlock();
+        }
     }
 
-    // Rest of the methods remain the same...
     private static void handleUpload(Socket socket) {
         File tempFile = null;
+        String fileName = "";
+        
         try {
-            // Immediately check queue status again (in case it changed)
-            if (videoQueue.size() >= MAX_QUEUE_LENGTH) {
-                droppedVideos.incrementAndGet();
-                gui.updateDroppedCount();
-                socket.close();
-                gui.updateStatus("Dropped video - queue full");
-                return;
-            }
-
             InputStream is = socket.getInputStream();
             DataInputStream dis = new DataInputStream(is);
 
-            String fileName = dis.readUTF();
+            // First get the filename
+            fileName = dis.readUTF();
             
-            // Check queue status again after reading filename
-            if (videoQueue.size() >= MAX_QUEUE_LENGTH) {
+            // Try to acquire a queue slot (non-blocking)
+            if (!queueSlots.tryAcquire()) {
                 droppedVideos.incrementAndGet();
                 gui.updateDroppedCount();
                 socket.close();
+                String reason = "Queue full (Max: " + MAX_QUEUE_LENGTH + ")";
+                System.out.println("[DROP] " + fileName + " - Reason: " + reason);
                 gui.updateStatus("Dropped video - queue full: " + fileName);
                 return;
             }
 
-            // Create temp file in system temp directory instead of SAVE_FOLDER
+            // Create temp file
             tempFile = File.createTempFile("upload_", ".tmp");
             
+            // Read the file data
             try (FileOutputStream fos = new FileOutputStream(tempFile)) {
                 byte[] buffer = new byte[4096];
                 int bytesRead;
                 while ((bytesRead = dis.read(buffer)) != -1) {
                     fos.write(buffer, 0, bytesRead);
-                    
-                    // Check queue status periodically during upload
-                    if (videoQueue.size() >= MAX_QUEUE_LENGTH) {
-                        droppedVideos.incrementAndGet();
-                        gui.updateDroppedCount();
-                        socket.close();
-                        tempFile.delete();
-                        gui.updateStatus("Dropped video during upload: " + fileName);
-                        return;
-                    }
                 }
             }
             
-            // Only move to save folder if queue has space
+            // Final processing
             File saveFile = new File(SAVE_FOLDER + fileName);
             if (tempFile.renameTo(saveFile)) {
-                videoQueue.put(saveFile);
-                gui.updateQueueStatus();
-                gui.updateStatus("Received: " + fileName);
-                
-                // Check if queue is now full
-                if (videoQueue.size() >= MAX_QUEUE_LENGTH) {
-                    synchronized (Consumer.class) {
-                        acceptConnections = false;
-                    }
+                queueLock.lock();
+                try {
+                    videoQueue.put(saveFile);
+                    gui.updateQueueStatus();
+                    gui.updateStatus("Received: " + fileName);
+                } finally {
+                    queueLock.unlock();
                 }
             } else {
+                queueSlots.release(); // Release the slot if we failed to save
                 droppedVideos.incrementAndGet();
                 gui.updateDroppedCount();
+                String reason = "Failed to save file (rename operation failed)";
+                System.out.println("[DROP] " + fileName + " - Reason: " + reason);
                 tempFile.delete();
                 gui.updateStatus("Failed to save: " + fileName);
             }
-        } catch (IOException | InterruptedException e) {
+        } catch (SocketTimeoutException e) {
+            queueSlots.release();
             droppedVideos.incrementAndGet();
             gui.updateDroppedCount();
-            gui.showError("Error handling upload: " + e.getMessage());
+            String reason = "Socket timeout during upload";
+            System.out.println("[DROP] " + fileName + " - Reason: " + reason);
+        } catch (IOException e) {
+            if (queueSlots != null) queueSlots.release();
+            droppedVideos.incrementAndGet();
+            gui.updateDroppedCount();
+            String reason = "I/O Error: " + e.getClass().getSimpleName();
+            System.out.println("[DROP] " + fileName + " - Reason: " + reason);
+        } catch (Exception e) {
+            if (queueSlots != null) queueSlots.release();
+            droppedVideos.incrementAndGet();
+            gui.updateDroppedCount();
+            String reason = "Unexpected error: " + e.getClass().getSimpleName();
+            System.out.println("[DROP] " + fileName + " - Reason: " + reason);
         } finally {
             try {
                 socket.close();
-                // Ensure temp file is deleted if something went wrong
                 if (tempFile != null && tempFile.exists()) {
                     tempFile.delete();
                 }
             } catch (IOException e) {
-                // Ignore close errors
+                System.out.println("[WARNING] Error cleaning up resources: " + e.getMessage());
             }
         }
     }
 
     private static void processVideo(File video) {
-        // Simulate video processing
         gui.updateStatus("Processing: " + video.getName());
         try {
             Thread.sleep(1000); // Simulate processing time
@@ -256,26 +268,33 @@ public class Consumer {
     }
 
     public static void clearAllVideos() {
-        // Clear the queue
-        videoQueue.clear();
-        
-        // Delete all files in the save folder
-        File saveDir = new File(SAVE_FOLDER);
-        if (saveDir.exists()) {
-            File[] files = saveDir.listFiles();
-            if (files != null) {
-                for (File file : files) {
-                    if (!file.delete()) {
-                        System.err.println("Failed to delete: " + file.getAbsolutePath());
+        queueLock.lock();
+        try {
+            // Clear the queue and release all slots
+            int released = videoQueue.size();
+            videoQueue.clear();
+            queueSlots.release(released);
+            
+            // Delete all files in the save folder
+            File saveDir = new File(SAVE_FOLDER);
+            if (saveDir.exists()) {
+                File[] files = saveDir.listFiles();
+                if (files != null) {
+                    for (File file : files) {
+                        if (!file.delete()) {
+                            System.err.println("Failed to delete: " + file.getAbsolutePath());
+                        }
                     }
                 }
             }
+            
+            // Update GUI
+            gui.clearVideoDisplay();
+            gui.updateQueueStatus();
+            gui.updateStatus("All videos cleared");
+        } finally {
+            queueLock.unlock();
         }
-        
-        // Update GUI
-        gui.clearVideoDisplay();
-        gui.updateQueueStatus();
-        gui.updateStatus("All videos cleared");
     }
 
     public static int getQueueSize() {

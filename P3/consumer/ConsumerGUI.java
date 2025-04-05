@@ -234,9 +234,6 @@ public class ConsumerGUI extends Application {
     private class VideoCard extends VBox {
         private final ImageView imageView = new ImageView();
         private final Label nameLabel = new Label();
-        private final Button previewButton = new Button("Play Preview");
-        private final Button fullButton = new Button("Play Full");
-        private final HBox buttonBox = new HBox(5, previewButton, fullButton);
         private final ProgressIndicator progressIndicator = new ProgressIndicator();
         private Image thumbnailImage = null;
         private final File videoFile;
@@ -264,16 +261,15 @@ public class ConsumerGUI extends Application {
             nameLabel.setPadding(new Insets(5, 0, 5, 0));
             nameLabel.setStyle("-fx-font-weight: bold;");
             
-            buttonBox.setAlignment(Pos.CENTER);
             setSpacing(8);
             
-            getChildren().addAll(imageView, nameLabel, buttonBox, progressIndicator);
+            getChildren().addAll(imageView, nameLabel, progressIndicator);
             
-            previewButton.setOnAction(e -> showPreview(videoFile));
-            fullButton.setOnAction(e -> playFullVideo(videoFile));
             
             setupHoverPreview();
-            loadThumbnailWithRetry(5); // Try 3 times to load thumbnail
+            this.setOnMouseClicked(e -> playFullVideo(videoFile));
+
+            loadThumbnailWithRetry(3); 
         }
         
         private void loadThumbnailWithRetry(int remainingAttempts) {
@@ -340,7 +336,6 @@ public class ConsumerGUI extends Application {
                 hoverPreviewStage.initOwner(primaryStage);
                 hoverPreviewStage.setTitle("Preview: " + videoFile.getName());
                 
-                // Set smaller size for hover preview
                 mediaView.setFitWidth(THUMBNAIL_WIDTH * 1.5);
                 mediaView.setFitHeight(THUMBNAIL_HEIGHT * 1.5);
                 
@@ -349,7 +344,6 @@ public class ConsumerGUI extends Application {
                 
                 hoverPreviewStage.setScene(scene);
                 
-                // Position the preview near the mouse
                 hoverPreviewStage.setX(primaryStage.getX() + 50);
                 hoverPreviewStage.setY(primaryStage.getY() + 50);
                 
@@ -362,15 +356,21 @@ public class ConsumerGUI extends Application {
                 hoverMediaPlayer.setAutoPlay(true);
                 hoverMediaPlayer.setMute(false);
                 
-                // Stop after PREVIEW_SECONDS
                 hoverMediaPlayer.setOnReady(() -> {
                     hoverMediaPlayer.seek(Duration.ZERO);
                     PauseTransition stopDelay = new PauseTransition(Duration.seconds(PREVIEW_SECONDS));
                     stopDelay.setOnFinished(e -> {
                         if (hoverPreviewStage != null) {
                             hoverPreviewStage.close();
+                            hoverPreviewStage = null;
+                        }
+                        if (hoverMediaPlayer != null) {
+                            hoverMediaPlayer.stop();
+                            hoverMediaPlayer.dispose();
+                            hoverMediaPlayer = null;
                         }
                     });
+                    
                     stopDelay.play();
                 });
                 
@@ -394,16 +394,12 @@ public class ConsumerGUI extends Application {
 
         private void setFallbackThumbnail() {
             try {
-                // Try to load from resources folder first
-                thumbnailImage = new Image(getClass().getResourceAsStream("/video-icon.png"));
+                thumbnailImage = new Image(getClass().getResourceAsStream("../no_thumbnail.png"));
                 imageView.setImage(thumbnailImage);
             } catch (Exception e) {
                 try {
-                    // Try to load from file system
-                    thumbnailImage = new Image("file:resources/video-icon.png");
                     imageView.setImage(thumbnailImage);
                 } catch (Exception ex) {
-                    // Final fallback - just show a colored background
                     imageView.setStyle("-fx-background-color: #cccccc;");
                 }
             }
@@ -415,74 +411,36 @@ public class ConsumerGUI extends Application {
             Media media = new Media(videoFile.toURI().toString());
             MediaPlayer mediaPlayer = new MediaPlayer(media);
             MediaView mediaView = new MediaView(mediaPlayer);
-            
+    
             Stage playerStage = new Stage();
             playerStage.initOwner(primaryStage);
             playerStage.setTitle("Playing: " + videoFile.getName());
-            
+    
             mediaView.setFitWidth(800);
             mediaView.setFitHeight(450);
             StackPane root = new StackPane(mediaView);
             Scene scene = new Scene(root);
-            
+    
             playerStage.setScene(scene);
             playerStage.show();
-            
+    
             mediaPlayer.play();
-            
+    
             mediaPlayer.setOnEndOfMedia(() -> {
-                Platform.runLater(playerStage::close);
+                Platform.runLater(() -> {
+                    mediaPlayer.stop();
+                    mediaPlayer.dispose();
+                    playerStage.close();
+                });
             });
-        } catch (Exception e) {
-            showError("Error playing video: " + e.getMessage());
-        }
-    }
-
-    private void showPreview(File videoFile) {
-        try {
-            Media media = new Media(videoFile.toURI().toString());
-            MediaPlayer mediaPlayer = new MediaPlayer(media);
-            MediaView mediaView = new MediaView(mediaPlayer);
-            
-            Stage previewStage = new Stage();
-            previewStage.initOwner(primaryStage);
-            previewStage.setTitle("Preview: " + videoFile.getName());
-            
-            mediaView.setFitWidth(640);
-            mediaView.setFitHeight(360);
-            StackPane root = new StackPane(mediaView);
-            Scene scene = new Scene(root);
-            
-            previewStage.setScene(scene);
-            
-            previewStage.setOnCloseRequest(event -> {
+    
+            playerStage.setOnCloseRequest(event -> {
                 mediaPlayer.stop();
                 mediaPlayer.dispose();
             });
-            
-            previewStage.show();
-            
-            mediaPlayer.play();
-            mediaPlayer.setOnReady(() -> {
-                mediaPlayer.seek(Duration.ZERO);
-                
-                java.util.Timer timer = new java.util.Timer();
-                timer.schedule(
-                    new java.util.TimerTask() {
-                        @Override
-                        public void run() {
-                            Platform.runLater(() -> {
-                                mediaPlayer.stop();
-                                mediaPlayer.dispose(); 
-                                previewStage.close();
-                            });
-                        }
-                    },
-                    PREVIEW_SECONDS * 1000
-                );
-            });
+    
         } catch (Exception e) {
-            System.err.println("Error showing preview: " + e.getMessage());
+            showError("Error playing video: " + e.getMessage());
         }
     }
 
