@@ -148,7 +148,7 @@ function UploadGrades() {
               type="text" 
               value={grade} 
               onChange={(e) => setGrade(e.target.value)}
-              placeholder="Enter Grade (A, B, C, etc.)"
+              placeholder="Enter Grade"
               style={{ marginLeft: '10px' }}
             />
           </label>
