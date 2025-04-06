@@ -4,7 +4,7 @@ function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  console.log('Rendering Login');  // Add this line to check if component is rendering
+  console.log('Rendering Login');
 
   const handleLogin = () => {
     // API call to backend Auth service to get JWT
@@ -19,6 +19,7 @@ function Login() {
     .then(data => {
       localStorage.setItem('jwt', data.token); // Save JWT in local storage
       window.location.href = '/courses'; // Redirect to courses
+      // TODO: redirect to upload-grades if faculty
     })
     .catch(err => alert('Login failed: ' + err));
   };
