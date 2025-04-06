@@ -79,13 +79,30 @@ function UploadGrades() {
       <div style={{ marginBottom: '20px' }}>
         <h3>Your Courses</h3>
         {courses.length > 0 ? (
-          <ul>
-            {courses.map(course => (
-              <li key={course.id}>
-                ID: {course.id} - {course.code} {course.title}
-              </li>
-            ))}
-          </ul>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid #ddd', backgroundColor: '#f2f2f2' }}>
+                <th style={{ padding: '10px', textAlign: 'left' }}>ID</th>
+                <th style={{ padding: '10px', textAlign: 'left' }}>Course</th>
+                <th style={{ padding: '10px', textAlign: 'left' }}>Section</th>
+                <th style={{ padding: '10px', textAlign: 'left' }}>Days</th>
+                <th style={{ padding: '10px', textAlign: 'left' }}>Time</th>
+                <th style={{ padding: '10px', textAlign: 'left' }}>Room</th>
+              </tr>
+            </thead>
+            <tbody>
+              {courses.map(course => (
+                <tr key={course.id} style={{ borderBottom: '1px solid #ddd' }}>
+                  <td style={{ padding: '10px' }}>{course.id}</td>
+                  <td style={{ padding: '10px' }}>{course.course}</td>
+                  <td style={{ padding: '10px' }}>{course.section}</td>
+                  <td style={{ padding: '10px' }}>{course.days}</td>
+                  <td style={{ padding: '10px' }}>{course.time}</td>
+                  <td style={{ padding: '10px' }}>{course.room}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         ) : (
           <p>You are not teaching any courses.</p>
         )}
@@ -104,7 +121,7 @@ function UploadGrades() {
               <option value="">Select a course</option>
               {courses.map(course => (
                 <option key={course.id} value={course.id}>
-                  {course.code} - {course.title}
+                  {course.code} - {course.title} (Section: {course.section})
                 </option>
               ))}
             </select>
@@ -131,7 +148,7 @@ function UploadGrades() {
               type="text" 
               value={grade} 
               onChange={(e) => setGrade(e.target.value)}
-              placeholder="Enter Grade"
+              placeholder="Enter Grade (A, B, C, etc.)"
               style={{ marginLeft: '10px' }}
             />
           </label>
@@ -149,13 +166,24 @@ function UploadGrades() {
       {students.length > 0 && (
         <div style={{ marginTop: '20px' }}>
           <h3>Enrolled Students</h3>
-          <ul>
-            {students.map(student => (
-              <li key={student.id}>
-                ID: {student.id} - {student.name} ({student.email})
-              </li>
-            ))}
-          </ul>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid #ddd', backgroundColor: '#f2f2f2' }}>
+                <th style={{ padding: '10px', textAlign: 'left' }}>ID</th>
+                <th style={{ padding: '10px', textAlign: 'left' }}>Name</th>
+                <th style={{ padding: '10px', textAlign: 'left' }}>Email</th>
+              </tr>
+            </thead>
+            <tbody>
+              {students.map(student => (
+                <tr key={student.id} style={{ borderBottom: '1px solid #ddd' }}>
+                  <td style={{ padding: '10px' }}>{student.id}</td>
+                  <td style={{ padding: '10px' }}>{student.name}</td>
+                  <td style={{ padding: '10px' }}>{student.email}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>
