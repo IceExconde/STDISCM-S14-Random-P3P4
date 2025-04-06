@@ -1,9 +1,14 @@
+// STDISCM S14 Exconde, Gomez, Maristela, Rejano
 package producer;
 
 import java.io.*;
 
 public class YouTubeDownloader {
 
+    /**
+     * * Downloads YouTube videos using yt-dlp.
+     * * @param savePath the path where the videos will be saved
+     */
     public static void downloadYouTubeVideos(String savePath) {
         // Example YouTube URLs (Replace these with actual links)
         String[] youtubeLinks = {
@@ -30,6 +35,11 @@ public class YouTubeDownloader {
         }
     }
 
+    /**
+     * * Downloads a YouTube video using yt-dlp.
+     * @param videoUrl
+     * @param savePath
+     */
     private static void downloadYouTubeVideo(String videoUrl, String savePath) {
         try {
             // yt-dlp command to download MP4 format and limit duration to 5 minutes
@@ -42,7 +52,6 @@ public class YouTubeDownloader {
             System.out.println("Downloading: " + videoUrl + " to " + savePath);
             Process process = Runtime.getRuntime().exec(command);
 
-            // Capture output for debugging
             printProcessOutput(process);
 
             // Wait for process to complete
@@ -57,16 +66,21 @@ public class YouTubeDownloader {
         }
     }
 
+    /**
+     * * Prints the output and error streams of the process.
+     * @param process
+     * @throws IOException
+     */
     private static void printProcessOutput(Process process) throws IOException {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
              BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
 
             String line;
             while ((line = reader.readLine()) != null) {
-                System.out.println(line); // Print process output
+                System.out.println(line);
             }
             while ((line = errorReader.readLine()) != null) {
-                System.err.println(line); // Print process errors
+                System.err.println(line); 
             }
         }
     }

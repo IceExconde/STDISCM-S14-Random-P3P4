@@ -1,3 +1,4 @@
+// STDISCM S14 Exconde, Gomez, Maristela, Rejano
 package consumer;
 
 import java.io.*;
@@ -9,9 +10,13 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * * Consumer class that receives video files from a producer and processes them.
+ * It uses a leaky bucket algorithm to control the rate of processing and a blocking queue to manage incoming video files.
+ */
 public class Consumer {
     public static final int SERVER_PORT = 8081;
-    public static int PROCESSING_RATE_MS = 500; 
+    private static int PROCESSING_RATE_MS = 500; 
     public static String SAVE_FOLDER = "P3/consumer/videos/";
 
     private static volatile BlockingQueue<File> videoQueue;
@@ -38,6 +43,11 @@ public class Consumer {
         new Thread(() -> startConsumerServer()).start();
     }
 
+    /**
+     * * Validates the number of consumer threads.
+     * @param scanner
+     * @return the number of consumer threads
+     */
     private static int getValidThreadCount(Scanner scanner) {
         while (true) {
             System.out.print("Enter number of consumer threads: ");
@@ -53,6 +63,11 @@ public class Consumer {
         }
     }
     
+    /**
+     * * * Validates the maximum queue length.
+     * @param scanner
+     * @return the maximum queue length
+     */
     private static int getValidQueueSize(Scanner scanner) {
         while (true) {
             System.out.print("Enter max queue length: ");
@@ -68,7 +83,9 @@ public class Consumer {
         }
     }
     
-    
+    /**
+     * * * Starts the consumer server that listens for incoming video files.
+     */
     public static void startConsumerServer() {
         videoQueue = new LinkedBlockingQueue<>(MAX_QUEUE_LENGTH);
         
@@ -100,8 +117,8 @@ public class Consumer {
         }
 
         // Connection handling thread pool
-        ExecutorService connectionPool = Executors.newFixedThreadPool(10);
-
+        ExecutorService connectionPool = Executors.newFixedThreadPool(CONSUMER_THREADS);
+        
         try {
             serverSocket = new ServerSocket(SERVER_PORT);
             gui.updateStatus(String.format(
@@ -127,6 +144,12 @@ public class Consumer {
         }
     }
 
+    /**
+     * * * Updates the configuration of the consumer threads and queue size.
+     * Ensures that the queue and threads are reinitialized correctly.
+     * @param threads
+     * @param queueSize
+     */
     public static void updateConfiguration(int threads, int queueSize) {
         queueLock.lock();
         try {
@@ -178,6 +201,10 @@ public class Consumer {
         }
     }
 
+    /**
+     * * * Handles the upload of a video file from the producer.
+     * @param socket
+     */
     private static void handleUpload(Socket socket) {
         File tempFile = null;
         String fileName = "";
@@ -186,7 +213,6 @@ public class Consumer {
             InputStream is = socket.getInputStream();
             DataInputStream dis = new DataInputStream(is);
 
-            // First get the filename
             fileName = dis.readUTF();
             
             // Try to acquire a queue slot (non-blocking)
@@ -195,7 +221,7 @@ public class Consumer {
                 gui.updateDroppedCount();
                 socket.close();
                 String reason = "Queue full (Max: " + MAX_QUEUE_LENGTH + ")";
-                System.out.println("[DROP] " + fileName + " - Reason: " + reason);
+                System.out.println("[DROPPED] " + fileName + " - Reason: " + reason);
                 gui.updateStatus("Dropped video - queue full: " + fileName);
                 return;
             }
@@ -212,7 +238,6 @@ public class Consumer {
                 }
             }
             
-            // Final processing
             File saveFile = new File(SAVE_FOLDER + fileName);
             if (tempFile.renameTo(saveFile)) {
                 queueLock.lock();
@@ -224,11 +249,11 @@ public class Consumer {
                     queueLock.unlock();
                 }
             } else {
-                queueSlots.release(); // Release the slot if we failed to save
+                queueSlots.release(); // Release the slot if failed to save
                 droppedVideos.incrementAndGet();
                 gui.updateDroppedCount();
                 String reason = "Failed to save file (rename operation failed)";
-                System.out.println("[DROP] " + fileName + " - Reason: " + reason);
+                System.out.println("[DROPPED] " + fileName + " - Reason: " + reason);
                 tempFile.delete();
                 gui.updateStatus("Failed to save: " + fileName);
             }
@@ -237,19 +262,19 @@ public class Consumer {
             droppedVideos.incrementAndGet();
             gui.updateDroppedCount();
             String reason = "Socket timeout during upload";
-            System.out.println("[DROP] " + fileName + " - Reason: " + reason);
+            System.out.println("[DROPPED] " + fileName + " - Reason: " + reason);
         } catch (IOException e) {
             if (queueSlots != null) queueSlots.release();
             droppedVideos.incrementAndGet();
             gui.updateDroppedCount();
             String reason = "I/O Error: " + e.getClass().getSimpleName();
-            System.out.println("[DROP] " + fileName + " - Reason: " + reason);
+            System.out.println("[DROPPED] " + fileName + " - Reason: " + reason);
         } catch (Exception e) {
             if (queueSlots != null) queueSlots.release();
             droppedVideos.incrementAndGet();
             gui.updateDroppedCount();
             String reason = "Unexpected error: " + e.getClass().getSimpleName();
-            System.out.println("[DROP] " + fileName + " - Reason: " + reason);
+            System.out.println("[DROPPED] " + fileName + " - Reason: " + reason);
         } finally {
             try {
                 socket.close();
@@ -262,10 +287,15 @@ public class Consumer {
         }
     }
 
+    /**
+     * * * Processes the video file.
+     * * Simulates video processing and updates the GUI.
+     * @param video
+     */
     private static void processVideo(File video) {
         gui.updateStatus("Processing: " + video.getName());
         try {
-            Thread.sleep(1000); // Simulate processing time
+            Thread.sleep(1000); 
             gui.addVideo(video);
             gui.updateStatus("Completed processing: " + video.getName());
         } catch (InterruptedException e) {
@@ -274,6 +304,9 @@ public class Consumer {
         }
     }
 
+    /**
+     * * * Clears all videos from the queue and deletes the files in the save folder.
+     */
     public static void clearAllVideos() {
         queueLock.lock();
         try {
@@ -304,6 +337,10 @@ public class Consumer {
         }
     }
 
+    /**
+     * * * * Returns the current size of the video queue.
+     * @return the size of the video queue
+     */
     public static int getQueueSize() {
         return videoQueue.size();
     }

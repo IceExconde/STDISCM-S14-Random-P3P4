@@ -1,3 +1,4 @@
+// STDISCM S14 Exconde, Gomez, Maristela, Rejano
 package consumer;
 
 import javafx.application.Application;
@@ -26,6 +27,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javafx.animation.PauseTransition;
 import javafx.scene.input.MouseEvent;
 
+/**
+ * * ConsumerGUI class that provides a graphical user interface for the consumer application.
+ * It displays the status of the consumer, the number of videos in the queue, and allows users to play videos and clear the queue.
+ */
 public class ConsumerGUI extends Application {
     private static final int THUMBNAIL_WIDTH = 320;
     private static final int THUMBNAIL_HEIGHT = 180;
@@ -45,12 +50,20 @@ public class ConsumerGUI extends Application {
     private Label droppedVideosLabel;
     private FlowPane videoGridPane;
 
+    /**
+     * * Launches the GUI in a separate thread.
+     * @param queue
+     * @param droppedCounter
+     */
     public static void launchGUI(BlockingQueue<File> queue, AtomicInteger droppedCounter) {
         videoQueue = queue;
         droppedVideos = droppedCounter;
         new Thread(() -> Application.launch(ConsumerGUI.class)).start();
     }
 
+    /**
+     * * * Returns the singleton instance of the ConsumerGUI.
+     */
     public static ConsumerGUI getInstance() {
         while (instance == null) {
             try {
@@ -62,6 +75,10 @@ public class ConsumerGUI extends Application {
         return instance;
     }
 
+    /**
+     * * * * Main method to launch the JavaFX application.
+     * @param primaryStage
+     */
     @Override
     public void start(Stage primaryStage) {
         instance = this;
@@ -75,6 +92,9 @@ public class ConsumerGUI extends Application {
         });
     }
 
+    /**
+     * Creates the user interface for the consumer application.
+     */
     private void createUI() {
         primaryStage.setTitle("Media Upload Consumer");
     
@@ -105,7 +125,6 @@ public class ConsumerGUI extends Application {
             applyButton
         );
     
-        // Top Header
         HBox headerBox = new HBox(10);
         headerBox.setPadding(new Insets(0, 0, 10, 0));
         headerBox.setAlignment(Pos.CENTER_LEFT);
@@ -155,7 +174,6 @@ public class ConsumerGUI extends Application {
 
         configPanel.getChildren().add(clearButton);
     
-        // Video Grid
         videoGridPane = new FlowPane();
         videoGridPane.setHgap(15);
         videoGridPane.setVgap(15);
@@ -174,6 +192,9 @@ public class ConsumerGUI extends Application {
         primaryStage.show();
     }
 
+    /**
+     * * Handles the exit action for the application.
+     */
     private void handleExit() {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Confirm Exit");
@@ -194,6 +215,9 @@ public class ConsumerGUI extends Application {
         });
     }
 
+    /**
+     *  Adds a video to the display and updates the video list.
+     */
     public void addVideo(File videoFile) {
         Platform.runLater(() -> {
             if (!videoList.contains(videoFile)) {
@@ -204,10 +228,17 @@ public class ConsumerGUI extends Application {
         });
     }
 
+    /**
+     * * Updates the status label with a message.
+     * @param message
+     */
     public void updateStatus(String message) {
         Platform.runLater(() -> statusLabel.setText(message));
     }
 
+    /**
+     * Updates the queue status label with the current size of the queue.
+     */
     public void updateQueueStatus() {
         Platform.runLater(() -> {
             int currentSize = Consumer.getQueueSize();
@@ -215,12 +246,19 @@ public class ConsumerGUI extends Application {
         });
     }
 
+    /**
+     *  Updates the dropped videos label with the current count of dropped videos. 
+     */
     public void updateDroppedCount() {
         Platform.runLater(() -> {
             droppedVideosLabel.setText("Dropped: " + droppedVideos.get());
         });
     }
 
+    /**
+     * * Displays an error message in a dialog box.
+     * @param message
+     */
     public void showError(String message) {
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -231,6 +269,9 @@ public class ConsumerGUI extends Application {
         });
     }
 
+    /**
+     * VideoCard class that will contain the thumbnail and name of the video.
+     */
     private class VideoCard extends VBox {
         private final ImageView imageView = new ImageView();
         private final Label nameLabel = new Label();
@@ -241,7 +282,11 @@ public class ConsumerGUI extends Application {
         private PauseTransition hoverDelay;
         private Stage hoverPreviewStage;
         private MediaPlayer hoverMediaPlayer;
-    
+        
+        /**
+         * * * VideoCard constructor that initializes the video card with a thumbnail and name.
+         * @param videoFile
+         */
         public VideoCard(File videoFile) {
             this.videoFile = videoFile;
             
@@ -265,13 +310,16 @@ public class ConsumerGUI extends Application {
             
             getChildren().addAll(imageView, nameLabel, progressIndicator);
             
-            
             setupHoverPreview();
             this.setOnMouseClicked(e -> playFullVideo(videoFile));
 
             loadThumbnailWithRetry(3); 
         }
         
+        /**
+         *  Loads the thumbnail image with retry logic.
+         * @param remainingAttempts
+         */
         private void loadThumbnailWithRetry(int remainingAttempts) {
             if (thumbnailLoaded || remainingAttempts <= 0) {
                 Platform.runLater(() -> {
@@ -306,6 +354,9 @@ public class ConsumerGUI extends Application {
             }).start();
         }
         
+        /**
+         * * Sets up the hover preview functionality for the video card.
+         */
         private void setupHoverPreview() {
             hoverDelay = new PauseTransition(Duration.millis(HOVER_PREVIEW_DELAY_MS));
             hoverDelay.setOnFinished(event -> showHoverPreview());
@@ -322,6 +373,9 @@ public class ConsumerGUI extends Application {
             });
         }
         
+        /**
+         * Shows a hover preview of the video when the mouse hovers over the video card.
+         */
         private void showHoverPreview() {
             try {
                 if (hoverPreviewStage != null && hoverPreviewStage.isShowing()) {
@@ -380,6 +434,9 @@ public class ConsumerGUI extends Application {
             }
         }
         
+        /**
+         * Closes the hover preview window and stops the media player.
+         */
         private void closeHoverPreview() {
             if (hoverPreviewStage != null) {
                 hoverPreviewStage.close();
@@ -392,9 +449,12 @@ public class ConsumerGUI extends Application {
             }
         }
 
+        /**
+         * * Sets a fallback thumbnail image if the thumbnail cannot be loaded.
+         */
         private void setFallbackThumbnail() {
             try {
-                thumbnailImage = new Image(getClass().getResourceAsStream("../no_thumbnail.png"));
+                thumbnailImage = new Image(getClass().getResourceAsStream("no_thumbnail.png"));
                 imageView.setImage(thumbnailImage);
             } catch (Exception e) {
                 try {
@@ -406,6 +466,10 @@ public class ConsumerGUI extends Application {
         }
     }
 
+    /**
+     * Plays the full video in a new window.
+     * @param videoFile
+     */
     private void playFullVideo(File videoFile) {
         try {
             Media media = new Media(videoFile.toURI().toString());
@@ -444,51 +508,50 @@ public class ConsumerGUI extends Application {
         }
     }
 
+    /**
+     * * Extracts the first frame from the video file to use as a thumbnail.
+     * @param videoFile
+     * @return Image of the first frame or null if extraction fails
+     */
     private Image extractFirstFrame(File videoFile) {
         try {
             Media media = new Media(videoFile.toURI().toString());
             MediaPlayer mediaPlayer = new MediaPlayer(media);
             mediaPlayer.setMute(true);
-
+    
             CountDownLatch latch = new CountDownLatch(1);
             final Image[] thumbnail = new Image[1];
-            
+    
             mediaPlayer.setOnReady(() -> {
-                try {
-                    // Try multiple positions if first attempt fails
-                    for (int i = 0; i < 3; i++) {
-                        mediaPlayer.seek(Duration.seconds(10));
-                        
-                        // Give it time to seek
-                        Thread.sleep(500);
-                        
-                        WritableImage image = new WritableImage(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
-                        MediaView mediaView = new MediaView(mediaPlayer);
-                        mediaView.setFitWidth(THUMBNAIL_WIDTH);
-                        mediaView.setFitHeight(THUMBNAIL_HEIGHT);
-                        
-                        if (mediaView.snapshot(new SnapshotParameters(), image) != null) {
-                            thumbnail[0] = image;
-                            break;
-                        }
+                mediaPlayer.seek(Duration.seconds(5)); 
+                Platform.runLater(() -> {
+                    WritableImage image = new WritableImage(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
+                    MediaView mediaView = new MediaView(mediaPlayer);
+                    mediaView.setFitWidth(THUMBNAIL_WIDTH);
+                    mediaView.setFitHeight(THUMBNAIL_HEIGHT);
+    
+                    // Snapshot after seek operation
+                    if (mediaView.snapshot(new SnapshotParameters(), image) != null) {
+                        thumbnail[0] = image;
                     }
-                } catch (Exception e) {
-                    System.err.println("Error capturing thumbnail: " + e.getMessage());
-                } finally {
+    
                     latch.countDown();
                     mediaPlayer.dispose();
-                }
+                });
             });
-            
+    
             mediaPlayer.play();
-            latch.await(15, TimeUnit.SECONDS); // Longer timeout for multiple attempts
+            latch.await(10, TimeUnit.SECONDS);
             return thumbnail[0];
         } catch (Exception e) {
             System.err.println("Error extracting frame: " + e.getMessage());
             return null;
         }
-    }
+    }    
 
+    /**
+     * Clears the video display and resets the video list.
+     */
     public void clearVideoDisplay() {
         Platform.runLater(() -> {
             videoList.clear();
@@ -496,6 +559,10 @@ public class ConsumerGUI extends Application {
         });
     }
 
+    /**
+     * * Updates the maximum size of the queue in the GUI.
+     * @param newMaxSize
+     */
     public void updateQueueMaxSize(int newMaxSize) {
         Platform.runLater(() -> {
             maxQueueSize = newMaxSize;
