@@ -16,13 +16,14 @@ public class Course {
     private String room;
     private int count;
     private List<String> studentIds;
+    private String facultyId;
 
     // Default constructor
     public Course() {
     }
 
     // Parameterized constructor
-    public Course(String id, String course, String section, String days, String time, String room, int count, List<String> studentIds) {
+    public Course(String id, String course, String section, String days, String time, String room, int count, List<String> studentIds, String facultyId) {
         this.id = id;
         this.course = course;
         this.section = section;
@@ -31,6 +32,7 @@ public class Course {
         this.room = room;
         this.count = count;
         this.studentIds = studentIds;
+        this.facultyId = facultyId;
     }
 
     // Getters and setters
@@ -96,5 +98,13 @@ public class Course {
 
     public void setStudentIds(List<String> studentIds) {
         this.studentIds = studentIds;
+    }
+
+    public String getFacultyId() {
+        return facultyId;
+    }
+
+    public void setFacultyId(String facultyId) {
+        this.facultyId = facultyId;
     }
 }

@@ -43,7 +43,7 @@ function UploadGrades() {
     if (!courseId) return;
     
     const jwt = localStorage.getItem('jwt');
-    fetch(`http://localhost:8082/faculty-service/course/${courseId}/students`, {
+    fetch(`http://localhost:8084/faculty-service/course/${courseId}/students`, {
       headers: { 'Authorization': `Bearer ${jwt}` }
     })
     .then(response => {
@@ -76,7 +76,7 @@ function UploadGrades() {
 
     const jwt = localStorage.getItem('jwt');
     // Submit grade to grade service
-    fetch('http://localhost:8082/faculty-service/grades/submit', {
+    fetch('http://localhost:8084/faculty-service/grades/submit', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${jwt}`,

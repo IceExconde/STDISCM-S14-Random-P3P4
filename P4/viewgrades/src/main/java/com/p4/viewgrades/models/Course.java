@@ -16,19 +16,19 @@ public class Course {
     private String days;
     private String time;
     private String room;
-    private String prof;
+    private String facultyId;
     private int count;
     private List<String> studentIds = new ArrayList<>();
 
 
-    public Course(@NonNull String classNbr, @NonNull String course, @NonNull String section, @NonNull String days, @NonNull String time, @NonNull String room, String prof) {
+    public Course(@NonNull String classNbr, @NonNull String course, @NonNull String section, @NonNull String days, @NonNull String time, @NonNull String room, String facultyId) {
         this.classNbr = classNbr;
         this.course = course;
         this.section = section;
         this.days = days;
         this.time = time;
         this.room = room;
-        this.prof = prof;
+        this.facultyId = facultyId;
         this.count = 0;
     }
 
@@ -80,12 +80,12 @@ public class Course {
         this.room = room;
     }
 
-    public String getProf() {
-        return prof;
+    public String getFacultyId() {
+        return facultyId;
     }
 
-    public void setProf(String prof) {
-        this.prof = prof;
+    public void setFacultyId(String facultyId) {
+        this.facultyId = facultyId;
     }
 
     public List<String> getStudentIds() {

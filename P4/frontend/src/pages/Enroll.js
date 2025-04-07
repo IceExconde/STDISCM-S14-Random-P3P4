@@ -11,16 +11,11 @@ function Enroll() {
     fetch('http://localhost:8081/view-courses', {
       headers: { 'Authorization': `Bearer ${jwt}` }
     })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
       console.log('Courses for enrollment:', data);
-      if (data && data.data) {
-        setCourses(data.data);
+      if (data && data.courses) {
+        setCourses(data.courses);
       } else if (Array.isArray(data)) {
         setCourses(data);
       } else {
@@ -38,54 +33,64 @@ function Enroll() {
       setMessage('Please enter a course ID');
       return;
     }
-
+  
     const jwt = localStorage.getItem('jwt');
-    fetch(`http://localhost:8082/enroll/${courseId}`, {
+    if (jwt) {
+      const decoded = JSON.parse(atob(jwt.split('.')[1]));
+      console.log('Decoded JWT:', decoded);
+    }
+
+    const studentId = localStorage.getItem('studentId');
+    
+    fetch('http://localhost:8082/api/enroll', {  
       method: 'POST',
-      headers: { 
+      headers: {
         'Authorization': `Bearer ${jwt}`,
         'Content-Type': 'application/json'
-      }
+      },
+      body: JSON.stringify({
+        studentId,
+        courseId
+      })
     })
     .then(response => {
       if (!response.ok) {
+        // Log status and headers for more details
+        console.error(`Failed to enroll: ${response.status} ${response.statusText}`);
+        console.error('Response Headers:', [...response.headers]);
+        
+        // Handle the error response (e.g., 403)
+        setMessage('Enrollment failed: You are not authorized to enroll in this course.');
         throw new Error(`Enrollment failed with status: ${response.status}`);
       }
-      return response.json();
+      return response.json();  // Only parse the body if the response is OK
     })
     .then(data => {
       console.log('Enrollment response:', data);
-      setMessage(`Successfully enrolled in course: ${courseId}`);
-      
+      setMessage(data.message || `Successfully enrolled in course: ${courseId}`);
+  
       // Refresh the course list
-      fetch('http://localhost:8081/view-courses', {
+      return fetch('http://localhost:8081/view-courses', {
         headers: { 'Authorization': `Bearer ${jwt}` }
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        if (data && data.data) {
-          setCourses(data.data);
-        } else if (Array.isArray(data)) {
-          setCourses(data);
-        } else {
-          setCourses([]);
-        }
-      })
-      .catch(err => {
-        console.error('Failed to refresh courses:', err);
-        alert('Failed to refresh courses: ' + err);
       });
     })
+    .then(response => response.json())
+    .then(data => {
+      if (data && data.data) {
+        setCourses(data.data);
+      } else if (Array.isArray(data)) {
+        setCourses(data);
+      } else {
+        setCourses([]);
+      }
+    })
     .catch(err => {
+      // Log the full error and the status message
       console.error('Enrollment error:', err);
       setMessage(`Enrollment failed: ${err.message}`);
     });
   };
+  
 
   return (
     <div>
@@ -104,17 +109,19 @@ function Enroll() {
                 <th style={{ padding: '10px', textAlign: 'left' }}>Days</th>
                 <th style={{ padding: '10px', textAlign: 'left' }}>Time</th>
                 <th style={{ padding: '10px', textAlign: 'left' }}>Room</th>
+                <th style={{ padding: '10px', textAlign: 'left' }}>Count</th>
               </tr>
             </thead>
             <tbody>
               {courses.map(course => (
-                <tr key={course.id} style={{ borderBottom: '1px solid #ddd' }}>
-                  <td style={{ padding: '10px' }}>{course.id}</td>
+                <tr key={course.classNbr} style={{ borderBottom: '1px solid #ddd' }}>
+                  <td style={{ padding: '10px' }}>{course.classNbr}</td>
                   <td style={{ padding: '10px' }}>{course.course}</td>
                   <td style={{ padding: '10px' }}>{course.section}</td>
                   <td style={{ padding: '10px' }}>{course.days}</td>
                   <td style={{ padding: '10px' }}>{course.time}</td>
                   <td style={{ padding: '10px' }}>{course.room}</td>
+                  <td style={{ padding: '10px' }}>{course.count}</td>
                 </tr>
               ))}
             </tbody>

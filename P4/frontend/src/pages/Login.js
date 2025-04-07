@@ -49,6 +49,11 @@ function Login() {
       }
       
       localStorage.setItem('jwt', data.token); // Save JWT in local storage
+
+      // Save student ID from response if it's available
+      if (data.user && data.user._id) {
+        localStorage.setItem('studentId', data.user._id); // Save studentId in local storage
+      }
       
       try {
         const payload = data.token.split('.')[1];
