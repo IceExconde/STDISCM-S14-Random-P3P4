@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Navigation from '../components/Navigation';
 
 function Grades() {
   const [grades, setGrades] = useState([]);
@@ -15,6 +16,7 @@ function Grades() {
 
   return (
     <div>
+      <Navigation />
       <h2>Your Grades</h2>
       {grades.length > 0 ? (
         <ul>

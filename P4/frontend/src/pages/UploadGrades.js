@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Navigation from '../components/Navigation';
 
 function UploadGrades() {
   const [courses, setCourses] = useState([]);
@@ -74,6 +75,7 @@ function UploadGrades() {
 
   return (
     <div>
+      <Navigation />
       <h2>Upload Grades</h2>
       
       <div style={{ marginBottom: '20px' }}>

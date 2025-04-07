@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Navigation from '../components/Navigation';
 
 function Enroll() {
   const [courses, setCourses] = useState([]);
@@ -49,6 +50,7 @@ function Enroll() {
 
   return (
     <div>
+      <Navigation />
       <h2>Enroll in Courses</h2>
       
       <div style={{ marginBottom: '20px' }}>

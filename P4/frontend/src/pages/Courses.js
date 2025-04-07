@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Navigation from '../components/Navigation';
 
 function Courses() {
   const [courses, setCourses] = useState([]);
@@ -15,6 +16,7 @@ function Courses() {
 
   return (
     <div>
+      <Navigation />
       <h2>Available Courses</h2>
       {courses.length > 0 ? (
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>

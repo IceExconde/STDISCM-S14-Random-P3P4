@@ -18,8 +18,19 @@ function Login() {
     .then(response => response.json())
     .then(data => {
       localStorage.setItem('jwt', data.token); // Save JWT in local storage
-      window.location.href = '/courses'; // Redirect to courses
-      // TODO: redirect to upload-grades if faculty
+      
+      const payload = data.token.split('.')[1];
+      const decodedPayload = JSON.parse(atob(payload));
+      const role = decodedPayload.role;
+      
+      localStorage.setItem('userRole', role); // Save role in local storage
+      
+      // Redirect based on role
+      if (role === 'FACULTY') {
+        window.location.href = '/upload-grades';
+      } else {
+        window.location.href = '/courses';
+      }
     })
     .catch(err => alert('Login failed: ' + err));
   };

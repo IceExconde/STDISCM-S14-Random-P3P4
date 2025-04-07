@@ -5,16 +5,49 @@ import Courses from './pages/Courses';
 import Grades from './pages/Grades';
 import Enroll from './pages/Enroll';
 import UploadGrades from './pages/UploadGrades';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<Login />} />
-        <Route path="/courses" element={<Courses />} />
-        <Route path="/grades" element={<Grades />} />
-        <Route path="/enroll" element={<Enroll />} />
-        <Route path="/upload-grades" element={<UploadGrades />} />
+        
+        {/* Student Routes */}
+        <Route
+          path="/courses"
+          element={
+            <ProtectedRoute allowedRoles={['STUDENT', 'FACULTY']}>
+              <Courses />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/grades"
+          element={
+            <ProtectedRoute allowedRoles={['STUDENT']}>
+              <Grades />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/enroll"
+          element={
+            <ProtectedRoute allowedRoles={['STUDENT']}>
+              <Enroll />
+            </ProtectedRoute>
+          }
+        />
+        
+        {/* Faculty Routes */}
+        <Route
+          path="/upload-grades"
+          element={
+            <ProtectedRoute allowedRoles={['FACULTY']}>
+              <UploadGrades />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </Router>
   );
