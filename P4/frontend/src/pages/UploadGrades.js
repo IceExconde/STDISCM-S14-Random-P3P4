@@ -12,12 +12,29 @@ function UploadGrades() {
   useEffect(() => {
     const jwt = localStorage.getItem('jwt');
     // Fetch courses taught by the faculty
-    fetch('http://localhost:8081/courses/enrolled', {
+    fetch('http://localhost:8081/view-courses', {
       headers: { 'Authorization': `Bearer ${jwt}` }
     })
-    .then(response => response.json())
-    .then(data => setCourses(data))
-    .catch(err => alert('Failed to load courses: ' + err));
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Faculty courses:', data);
+      if (data && data.data) {
+        setCourses(data.data);
+      } else if (Array.isArray(data)) {
+        setCourses(data);
+      } else {
+        setCourses([]);
+      }
+    })
+    .catch(err => {
+      console.error('Failed to load courses:', err);
+      alert('Failed to load courses: ' + err);
+    });
   }, []);
 
   const handleCourseChange = (courseId) => {
@@ -26,12 +43,25 @@ function UploadGrades() {
     if (!courseId) return;
     
     const jwt = localStorage.getItem('jwt');
-    // Get students enrolled in this course (optional - if API supports it)
-    fetch(`http://localhost:8081/courses/${courseId}/students`, {
+    fetch(`http://localhost:8082/faculty-service/course/${courseId}/students`, {
       headers: { 'Authorization': `Bearer ${jwt}` }
     })
-    .then(response => response.json())
-    .then(data => setStudents(data))
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Students in course:', data);
+      if (data && data.data) {
+        setStudents(data.data);
+      } else if (Array.isArray(data)) {
+        setStudents(data);
+      } else {
+        setStudents([]);
+      }
+    })
     .catch(err => {
       console.error('Failed to load students:', err);
       setStudents([]);
@@ -46,7 +76,7 @@ function UploadGrades() {
 
     const jwt = localStorage.getItem('jwt');
     // Submit grade to grade service
-    fetch('http://localhost:8082/grades', {
+    fetch('http://localhost:8082/faculty-service/grades/submit', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${jwt}`,
@@ -60,17 +90,21 @@ function UploadGrades() {
     })
     .then(response => {
       if (!response.ok) {
-        throw new Error('Failed to submit grade');
+        throw new Error(`Failed to submit grade. Status: ${response.status}`);
       }
       return response.json();
     })
     .then(data => {
+      console.log('Grade submission response:', data);
       setMessage('Grade successfully submitted');
       // Reset form
       setStudentId('');
       setGrade('');
     })
-    .catch(err => setMessage(`Grade submission failed: ${err.message}`));
+    .catch(err => {
+      console.error('Grade submission error:', err);
+      setMessage(`Grade submission failed: ${err.message}`);
+    });
   };
 
   return (
@@ -123,7 +157,7 @@ function UploadGrades() {
               <option value="">Select a course</option>
               {courses.map(course => (
                 <option key={course.id} value={course.id}>
-                  {course.code} - {course.title} (Section: {course.section})
+                  {course.code || course.course} - {course.title || course.section}
                 </option>
               ))}
             </select>

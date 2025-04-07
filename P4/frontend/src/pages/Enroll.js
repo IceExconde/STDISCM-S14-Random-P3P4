@@ -8,12 +8,29 @@ function Enroll() {
 
   useEffect(() => {
     const jwt = localStorage.getItem('jwt');
-    fetch('http://localhost:8081/courses', {
+    fetch('http://localhost:8081/view-courses', {
       headers: { 'Authorization': `Bearer ${jwt}` }
     })
-    .then(response => response.json())
-    .then(data => setCourses(data))
-    .catch(err => alert('Failed to load courses: ' + err));
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Courses for enrollment:', data);
+      if (data && data.data) {
+        setCourses(data.data);
+      } else if (Array.isArray(data)) {
+        setCourses(data);
+      } else {
+        setCourses([]);
+      }
+    })
+    .catch(err => {
+      console.error('Failed to load courses:', err);
+      alert('Failed to load courses: ' + err);
+    });
   }, []);
 
   const handleEnroll = () => {
@@ -23,7 +40,7 @@ function Enroll() {
     }
 
     const jwt = localStorage.getItem('jwt');
-    fetch(`http://localhost:8081/courses/${courseId}/enroll`, {
+    fetch(`http://localhost:8082/enroll/${courseId}`, {
       method: 'POST',
       headers: { 
         'Authorization': `Bearer ${jwt}`,
@@ -32,20 +49,42 @@ function Enroll() {
     })
     .then(response => {
       if (!response.ok) {
-        throw new Error('Enrollment failed');
+        throw new Error(`Enrollment failed with status: ${response.status}`);
       }
       return response.json();
     })
     .then(data => {
+      console.log('Enrollment response:', data);
       setMessage(`Successfully enrolled in course: ${courseId}`);
-      fetch('http://localhost:8081/courses', {
+      
+      // Refresh the course list
+      fetch('http://localhost:8081/view-courses', {
         headers: { 'Authorization': `Bearer ${jwt}` }
       })
-      .then(response => response.json())
-      .then(data => setCourses(data))
-      .catch(err => alert('Failed to refresh courses: ' + err));
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data && data.data) {
+          setCourses(data.data);
+        } else if (Array.isArray(data)) {
+          setCourses(data);
+        } else {
+          setCourses([]);
+        }
+      })
+      .catch(err => {
+        console.error('Failed to refresh courses:', err);
+        alert('Failed to refresh courses: ' + err);
+      });
     })
-    .catch(err => setMessage(`Enrollment failed: ${err.message}`));
+    .catch(err => {
+      console.error('Enrollment error:', err);
+      setMessage(`Enrollment failed: ${err.message}`);
+    });
   };
 
   return (

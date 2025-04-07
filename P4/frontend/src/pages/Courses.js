@@ -6,12 +6,27 @@ function Courses() {
 
   useEffect(() => {
     const jwt = localStorage.getItem('jwt');
-    fetch('http://localhost:8081/courses/all', {
+    fetch('http://localhost:8081/view-courses', {
       headers: { 'Authorization': `Bearer ${jwt}` }
     })
-    .then(response => response.json())
-    .then(data => setCourses(data))
-    .catch(err => alert('Failed to load courses: ' + err));
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Courses response:', data);
+      if (data && data.data) {
+        setCourses(data.data);
+      } else {
+        setCourses([]);
+      }
+    })
+    .catch(err => {
+      console.error('Failed to load courses:', err);
+      alert('Failed to load courses: ' + err);
+    });
   }, []);
 
   return (

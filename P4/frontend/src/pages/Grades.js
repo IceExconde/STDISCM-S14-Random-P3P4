@@ -6,12 +6,29 @@ function Grades() {
 
   useEffect(() => {
     const jwt = localStorage.getItem('jwt');
-    fetch('http://localhost:8083/grades', {
+    fetch('http://localhost:8083/view-grades', {
       headers: { 'Authorization': `Bearer ${jwt}` }
     })
-    .then(response => response.json())
-    .then(data => setGrades(data))
-    .catch(err => alert('Failed to load grades: ' + err));
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Grades response:', data);
+      if (data && data.data) {
+        setGrades(data.data);
+      } else if (Array.isArray(data)) {
+        setGrades(data);
+      } else {
+        setGrades([]);
+      }
+    })
+    .catch(err => {
+      console.error('Failed to load grades:', err);
+      alert('Failed to load grades: ' + err);
+    });
   }, []);
 
   return (

@@ -15,8 +15,14 @@ function Login() {
         'Content-Type': 'application/json'
       }
     })
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
     .then(data => {
+      console.log('Login response:', data);
       localStorage.setItem('jwt', data.token); // Save JWT in local storage
       
       const payload = data.token.split('.')[1];
@@ -32,7 +38,10 @@ function Login() {
         window.location.href = '/courses';
       }
     })
-    .catch(err => alert('Login failed: ' + err));
+    .catch(err => {
+      console.error('Login error:', err);
+      alert('Login failed: ' + err);
+    });
   };
 
   return (
