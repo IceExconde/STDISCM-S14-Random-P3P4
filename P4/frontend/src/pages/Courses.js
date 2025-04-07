@@ -72,7 +72,7 @@ function Courses() {
 
     fetchCourses();
   }, []);
-
+  console.log('Courses:', courses);
   return (
     <div>
       <Navigation />
@@ -104,8 +104,8 @@ function Courses() {
           </thead>
           <tbody>
             {courses.map((course, index) => (
-              <tr key={course.id || index} style={{ borderBottom: '1px solid #ddd' }}>
-                <td style={{ padding: '10px' }}>{course.id}</td>
+              <tr key={course.classNbr || index} style={{ borderBottom: '1px solid #ddd' }}>
+                <td style={{ padding: '10px' }}>{course.classNbr || 'N/A'}</td>
                 <td style={{ padding: '10px' }}>{course.course}</td>
                 <td style={{ padding: '10px' }}>{course.section}</td>
                 <td style={{ padding: '10px' }}>{course.days}</td>
