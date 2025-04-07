@@ -1,4 +1,4 @@
-package com.p4.viewcourses;
+package com.p4.viewgrades.models;
 
 import com.mongodb.lang.NonNull;
 import org.springframework.data.annotation.Id;
