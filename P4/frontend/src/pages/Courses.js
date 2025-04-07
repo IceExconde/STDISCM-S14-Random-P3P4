@@ -6,7 +6,7 @@ function Courses() {
 
   useEffect(() => {
     const jwt = localStorage.getItem('jwt');
-    fetch('http://course-service:8081/courses', {
+    fetch('http://localhost:8081/courses/all', {
       headers: { 'Authorization': `Bearer ${jwt}` }
     })
     .then(response => response.json())

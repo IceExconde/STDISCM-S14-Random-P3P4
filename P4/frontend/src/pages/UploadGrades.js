@@ -12,7 +12,7 @@ function UploadGrades() {
   useEffect(() => {
     const jwt = localStorage.getItem('jwt');
     // Fetch courses taught by the faculty
-    fetch('http://course-service:8081/courses/enrolled', {
+    fetch('http://localhost:8081/courses/enrolled', {
       headers: { 'Authorization': `Bearer ${jwt}` }
     })
     .then(response => response.json())
@@ -27,7 +27,7 @@ function UploadGrades() {
     
     const jwt = localStorage.getItem('jwt');
     // Get students enrolled in this course (optional - if API supports it)
-    fetch(`http://course-service:8081/courses/${courseId}/students`, {
+    fetch(`http://localhost:8081/courses/${courseId}/students`, {
       headers: { 'Authorization': `Bearer ${jwt}` }
     })
     .then(response => response.json())
@@ -46,7 +46,7 @@ function UploadGrades() {
 
     const jwt = localStorage.getItem('jwt');
     // Submit grade to grade service
-    fetch('http://grade-service:8082/grades', {
+    fetch('http://localhost:8082/grades', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${jwt}`,

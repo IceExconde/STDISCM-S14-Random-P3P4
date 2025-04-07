@@ -8,7 +8,7 @@ function Enroll() {
 
   useEffect(() => {
     const jwt = localStorage.getItem('jwt');
-    fetch('http://course-service:8081/courses', {
+    fetch('http://localhost:8081/courses', {
       headers: { 'Authorization': `Bearer ${jwt}` }
     })
     .then(response => response.json())
@@ -23,7 +23,7 @@ function Enroll() {
     }
 
     const jwt = localStorage.getItem('jwt');
-    fetch(`http://course-service:8081/courses/${courseId}/enroll`, {
+    fetch(`http://localhost:8081/courses/${courseId}/enroll`, {
       method: 'POST',
       headers: { 
         'Authorization': `Bearer ${jwt}`,
@@ -38,7 +38,7 @@ function Enroll() {
     })
     .then(data => {
       setMessage(`Successfully enrolled in course: ${courseId}`);
-      fetch('http://course-service:8081/courses', {
+      fetch('http://localhost:8081/courses', {
         headers: { 'Authorization': `Bearer ${jwt}` }
       })
       .then(response => response.json())

@@ -8,7 +8,7 @@ function Login() {
 
   const handleLogin = () => {
     // API call to backend Auth service to get JWT
-    fetch('http://auth-service:8080/auth/login', {
+    fetch('http://localhost:8080/api/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
       headers: {

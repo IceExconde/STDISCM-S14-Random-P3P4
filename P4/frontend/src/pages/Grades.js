@@ -6,7 +6,7 @@ function Grades() {
 
   useEffect(() => {
     const jwt = localStorage.getItem('jwt');
-    fetch('http://grades-service:8083/grades', {
+    fetch('http://localhost:8083/grades', {
       headers: { 'Authorization': `Bearer ${jwt}` }
     })
     .then(response => response.json())
