@@ -3,6 +3,7 @@ package com.example.jwtlogin.service;
 import com.example.jwtlogin.model.User;
 import com.example.jwtlogin.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -16,12 +17,18 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
     // Authenticate method to check email and password
     public User authenticate(String email, String password) {
-        User user = userRepository.findByEmail(email); // Find user by email in the MongoDB collection
-        if (user != null && user.getPassword().equals(password)) {
+        // Find user by email
+        User user = userRepository.findByEmail(email);
+        
+        // Check if user exists and compare passwords using passwordEncoder
+        if (user != null && passwordEncoder.matches(password, user.getPassword())) {
             return user; // Valid credentials
         }
+        
         return null; // Invalid credentials
     }
 }
