@@ -32,4 +32,11 @@ public class AuthController {
         String token = jwtService.generateToken(user);  // Generate token after successful authentication
         return ResponseEntity.ok(new LoginResponse("Login successful! You are a " + user.getRole().name().toLowerCase(), token));
     }
+
+    @GetMapping("/health")
+    public ResponseEntity<String> healthCheck() {
+        return ResponseEntity.ok("Auth service is up and running.");
+    }
+
+    
 }

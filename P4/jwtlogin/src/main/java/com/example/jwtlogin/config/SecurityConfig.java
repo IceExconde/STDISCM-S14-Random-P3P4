@@ -27,17 +27,4 @@ public class SecurityConfig {
 
         return http.build();
     }
-
-    // Explicit CORS configuration
-    @Bean
-    public CorsFilter corsFilter() {
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(false);  // No cookies needed for JWT
-        config.addAllowedOrigin("http://localhost:5000");  // Your React frontend origin
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("*");
-        source.registerCorsConfiguration("/**", config);
-        return new CorsFilter(source);
-    }
 }

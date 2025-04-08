@@ -21,7 +21,7 @@ public class JwtloginApplication {
                     .allowedOrigins("http://localhost:5000")  
                     .allowedMethods("*")
                     .allowedHeaders("*")
-                    .allowCredentials(false);
+                    .allowCredentials(true);
             }
         };
     }

@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleLogin = async () => {
     try {
       setError('');
       setLoading(true);
       
-      // API call to backend Auth service to get JWT
       console.log('Attempting login to:', 'http://localhost:8080/api/auth/login');
       
       const response = await fetch('http://localhost:8080/api/auth/login', {
@@ -137,6 +138,9 @@ function Login() {
         <p>Student: student@example.com / password</p>
         <p>Faculty: faculty@example.com / password</p>
       </div>
+      <button onClick={() => navigate('/')} style={{ marginTop: '1rem' }}>
+        Back to Home
+      </button>
     </div>
   );
 }
