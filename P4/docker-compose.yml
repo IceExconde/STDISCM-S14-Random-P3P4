@@ -1,0 +1,30 @@
+services:
+  login:
+    build: ./jwtlogin
+    ports:
+      - "8080:8080"
+
+  viewcourses:
+    build: ./viewcourses
+    ports:
+      - "8081:8081"
+
+  enroll:
+    build: ./enroll
+    ports:
+      - "8082:8082"
+
+  viewgrades:
+    build: ./viewgrades
+    ports:
+      - "8083:8083"
+
+  faculty-service:
+    build: ./faculty-service
+    ports:
+      - "8084:8084"
+
+  createaccount:
+    build: ./createAccount
+    ports:
+      - "8085:8085"

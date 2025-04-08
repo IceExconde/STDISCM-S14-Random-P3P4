@@ -12,6 +12,6 @@ COPY src ./src
 
 RUN ./mvnw clean package -DskipTests
 
-EXPOSE 8081
+EXPOSE 8084
 
-CMD ["java", "-jar", "target/viewcourses-0.0.1-SNAPSHOT.jar", "--server.port=8081"]
+CMD ["java", "-jar", "target/faculty-service-0.0.1-SNAPSHOT.jar", "--server.port=8084"]

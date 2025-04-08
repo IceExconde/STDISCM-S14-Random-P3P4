@@ -1,4 +1,17 @@
-FROM openjdk:17-jdk-slim
-ARG JAR_FILE=target/viewgrades-0.0.1-SNAPSHOT.jar
-COPY ${JAR_FILE} app.jar
-ENTRYPOINT ["java","-jar","/app.jar"]
+FROM openjdk:17
+
+WORKDIR /app
+
+COPY .mvn/ .mvn
+COPY mvnw .
+COPY pom.xml .
+
+RUN ./mvnw dependency:go-offline
+
+COPY src ./src
+
+RUN ./mvnw clean package -DskipTests
+
+EXPOSE 8083
+
+CMD ["java", "-jar", "target/viewgrades-0.0.1-SNAPSHOT.jar", "--server.port=8083"]
