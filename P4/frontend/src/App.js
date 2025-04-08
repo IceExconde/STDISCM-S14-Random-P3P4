@@ -6,6 +6,7 @@ import Grades from './pages/Grades';
 import Enroll from './pages/Enroll';
 import UploadGrades from './pages/UploadGrades';
 import ProtectedRoute from './components/ProtectedRoute';
+import ErrorPage from './pages/ErrorPage';
 
 function App() {
   return (
@@ -48,6 +49,8 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        <Route path="*" element={<ErrorPage />} />
       </Routes>
     </Router>
   );
