@@ -15,8 +15,9 @@ public class JwtService {
 
     public String generateToken(User user) {
         return Jwts.builder()
-                .setSubject(user.getEmail())
-                .claim("role", user.getRole().name())  // Add user role as a claim
+                .setSubject(user.getId())
+                .claim("email", user.getEmail())  
+                .claim("role", user.getRole().name())  
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + JWT_EXPIRATION))
                 .signWith(SignatureAlgorithm.HS256, JWT_SECRET_KEY)

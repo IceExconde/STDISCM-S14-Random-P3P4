@@ -35,6 +35,9 @@ function Enroll() {
     }
   
     const jwt = localStorage.getItem('jwt');
+    const decoded = JSON.parse(atob(jwt.split('.')[1])); // Decoding JWT
+    console.log(decoded); // Check the contents of the JWT (sub, role, etc.)
+
     if (jwt) {
       const decoded = JSON.parse(atob(jwt.split('.')[1]));
       console.log('Decoded JWT:', decoded);
