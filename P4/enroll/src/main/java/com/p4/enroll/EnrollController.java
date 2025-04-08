@@ -30,10 +30,14 @@ package com.p4.enroll;
      @PostMapping
      @Transactional
      public ResponseEntity<EnrollResponse> enrollStudentinClass(@RequestBody EnrollRequest request) {
-          Logger logger = LoggerFactory.getLogger(EnrollController.class);
+         Logger logger = LoggerFactory.getLogger(EnrollController.class);
+
+         logger.info("Enroll method called");
  
          String studentId = request.getStudentId();
          String courseId = request.getCourseId();
+         
+         logger.info("student: {}, course: {}", studentId, courseId);
  
          try {
              //verify both ids exist
