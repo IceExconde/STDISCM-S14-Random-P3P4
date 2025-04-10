@@ -19,10 +19,10 @@ public class ViewCoursesApplication {
 			@Override
 			public void addCorsMappings(CorsRegistry registry) {
 				registry.addMapping("/**")
-						.allowedOrigins("*")
+						.allowedOriginPatterns("*")
 						.allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
 						.allowedHeaders("*")
-						.allowCredentials(false)
+						.allowCredentials(true)
 						.maxAge(3600);
 			}
 		};
