@@ -9,20 +9,20 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @SpringBootApplication
 public class FacultyServiceApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(FacultyServiceApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(FacultyServiceApplication.class, args);
+    }
 
-	@Bean
+    @Bean
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                    .allowedOrigins("http://localhost:5000")  
-                    .allowedMethods("*")
-                    .allowedHeaders("*")
-                    .allowCredentials(false);
+                        .allowedOrigins("http://localhost:5001")
+                        .allowedMethods("*")
+                        .allowedHeaders("*")
+                        .allowCredentials(false);
             }
         };
     }

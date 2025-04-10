@@ -18,10 +18,10 @@ public class JwtloginApplication {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                    .allowedOrigins("http://localhost:5000")  
-                    .allowedMethods("*")
-                    .allowedHeaders("*")
-                    .allowCredentials(true);
+                        .allowedOrigins("http://localhost:5001")
+                        .allowedMethods("*")
+                        .allowedHeaders("*")
+                        .allowCredentials(true);
             }
         };
     }
