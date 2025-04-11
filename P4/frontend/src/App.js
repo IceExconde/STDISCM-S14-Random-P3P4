@@ -12,7 +12,6 @@ import CreateCourse from './pages/CreateCourse';
 import CreateAccount from './pages/CreateAccount';
 import ProtectedRoute from './components/ProtectedRoute';
 import FeatureCheck from './components/FeatureCheck';
-import CreateCourse from './pages/CreateCourse';
 import ViewEnrolledCourses from './pages/ViewEnrolledCourses';
 import FacultyDropCourses from './pages/FacultyDropCourses';
 
