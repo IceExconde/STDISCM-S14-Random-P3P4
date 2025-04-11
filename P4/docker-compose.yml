@@ -28,3 +28,14 @@ services:
     build: ./createAccount
     ports:
       - "8085:8085"
+
+  viewenrolledcourses:
+    build: ./viewenrolledcourses
+    ports:
+      - "8086:8086"
+
+  createcourse:
+    build: ./createcourse
+    ports:
+      - "8087:8087"
+

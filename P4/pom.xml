@@ -20,6 +20,8 @@
         <module>viewgrades</module>
         <module>faculty-service</module>
         <module>createAccount</module>
+        <module>viewenrolledcourses</module>
+        <module>createcourse</module>
     </modules>
 
     <build>
