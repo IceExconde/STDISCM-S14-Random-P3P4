@@ -11,6 +11,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import FeatureCheck from './components/FeatureCheck';
 import CreateCourse from './pages/CreateCourse';
 import ViewEnrolledCourses from './pages/ViewEnrolledCourses';
+import FacultyDropCourses from './pages/FacultyDropCourses';
 
 function App() {
   return (
@@ -31,7 +32,9 @@ function App() {
           path="/courses"
           element={
             <ProtectedRoute allowedRoles={['STUDENT', 'FACULTY']}>
-              <Courses />
+              <FeatureCheck serviceUrl="http://localhost:8081/view-courses/health">
+                <Courses />
+              </FeatureCheck>
             </ProtectedRoute>
           }
         />
@@ -39,7 +42,9 @@ function App() {
           path="/grades"
           element={
             <ProtectedRoute allowedRoles={['STUDENT']}>
-              <Grades />
+              <FeatureCheck serviceUrl="http://localhost:8083/api/view-grades/health">
+                <Grades />
+              </FeatureCheck>
             </ProtectedRoute>
           }
         />
@@ -47,7 +52,9 @@ function App() {
           path="/enroll"
           element={
             <ProtectedRoute allowedRoles={['STUDENT']}>
-              <Enroll />
+              <FeatureCheck serviceUrl="http://localhost:8082/api/enroll/health">
+                <Enroll />
+              </FeatureCheck>
             </ProtectedRoute>
           }
         />
@@ -55,7 +62,9 @@ function App() {
           path="/enrolled-courses"
           element={
             <ProtectedRoute allowedRoles={['STUDENT']}>
-              <ViewEnrolledCourses />
+              <FeatureCheck serviceUrl="http://localhost:8086/api/view-enrolled/health">
+                <ViewEnrolledCourses />
+              </FeatureCheck>
             </ProtectedRoute>
           }
         />
@@ -65,7 +74,9 @@ function App() {
           path="/upload-grades"
           element={
             <ProtectedRoute allowedRoles={['FACULTY']}>
-              <UploadGrades />
+              <FeatureCheck serviceUrl="http://localhost:8084/grades/add/health">
+                <UploadGrades />
+              </FeatureCheck>
             </ProtectedRoute>
           }
         />
@@ -73,18 +84,24 @@ function App() {
           path="/create-course"
           element={
             <ProtectedRoute allowedRoles={['FACULTY']}>
-              <CreateCourse />
+              <FeatureCheck serviceUrl="http://localhost:8087/api/create-course/health">
+                <CreateCourse />
+              </FeatureCheck>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/drop-courses"
+          element={
+            <ProtectedRoute allowedRoles={['FACULTY']}>
+              <FeatureCheck serviceUrl="http://localhost:8085/api/faculty-courses/health">
+                <FacultyDropCourses />
+              </FeatureCheck>
             </ProtectedRoute>
           }
         />
 
         {/* Error Routes */}
-        <Route path="/error/feature-unavailable" element={
-          <ErrorPage state={{
-            feature: true,
-            message: 'This feature is currently unavailable. Please try again later.'
-          }} />
-        } />
         <Route path="/error/unauthorized" element={
           <ErrorPage state={{
             feature: true,
@@ -94,6 +111,12 @@ function App() {
         <Route path="/error/not-found" element={
           <ErrorPage state={{
             message: 'The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.'
+          }} />
+        } />
+        <Route path="/error/service-unavailable" element={
+          <ErrorPage state={{
+            feature: true,
+            message: 'The service is currently unavailable. Please try again later.'
           }} />
         } />
         

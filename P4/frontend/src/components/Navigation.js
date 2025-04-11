@@ -58,6 +58,12 @@ function Navigation() {
             Create Course
           </button>
           <button 
+            onClick={() => navigate('/drop-courses')}
+            style={{ margin: '0 5px', padding: '8px 15px' }}
+          >
+            Drop Courses
+          </button>
+          <button 
             onClick={() => navigate('/upload-grades')}
             style={{ margin: '0 5px', padding: '8px 15px' }}
           >

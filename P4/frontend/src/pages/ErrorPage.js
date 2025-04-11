@@ -45,21 +45,6 @@ function ErrorPage() {
         >
           Go Back
         </button>
-        <button
-          onClick={() => navigate('/')}
-          style={{
-            padding: '12px 24px',
-            fontSize: '1.1rem',
-            backgroundColor: '#28a745',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            transition: 'background-color 0.3s'
-          }}
-        >
-          Return Home
-        </button>
       </div>
     </div>
   );
