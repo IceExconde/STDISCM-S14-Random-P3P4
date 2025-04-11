@@ -61,13 +61,17 @@ function Login() {
         const decodedPayload = JSON.parse(atob(payload));
         console.log('Decoded JWT payload:', decodedPayload);
         const role = decodedPayload.role;
-        const studentId = decodedPayload.sub; // Assuming 'sub' contains the student ID
+        const user_id = decodedPayload.sub; // Assuming 'sub' contains the student ID
         
         localStorage.setItem('userRole', role); // Save role in local storage
-        localStorage.setItem('studentId', studentId); // Save studentId in local storage
+
+        if (role === 'STUDENT') {
+          localStorage.setItem('studentId', user_id); // Save studentId in local storage
+        }
         
         // Redirect based on role
         if (role === 'FACULTY') {
+          localStorage.setItem('professorId', user_id); // Save studentId in local storage
           window.location.href = '/upload-grades';
         } else {
           window.location.href = '/courses';

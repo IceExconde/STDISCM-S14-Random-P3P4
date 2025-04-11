@@ -7,6 +7,9 @@ import Grades from './pages/Grades';
 import Enroll from './pages/Enroll';
 import UploadGrades from './pages/UploadGrades';
 import ErrorPage from './pages/ErrorPage';
+import EditCourses from './pages/EditCourses';
+import CreateCourse from './pages/CreateCourse';
+import CreateAccount from './pages/CreateAccount';
 import ProtectedRoute from './components/ProtectedRoute';
 import FeatureCheck from './components/FeatureCheck';
 
@@ -23,6 +26,14 @@ function App() {
             </FeatureCheck>
           } 
         />
+        <Route 
+          path="/register" 
+          element={
+            <FeatureCheck serviceUrl="http://localhost:8085/api/auth/health">
+              <CreateAccount />
+            </FeatureCheck>
+          } 
+        />
         <Route path="/error" element={<ErrorPage />} />
         {/* Student Routes */}
         <Route
@@ -33,6 +44,24 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        <Route
+          path="/create-course"
+          element={
+            <ProtectedRoute allowedRoles={['FACULTY']}>
+              <CreateCourse />
+            </ProtectedRoute>
+          }
+        />      
+        <Route
+          path="/edit-courses"
+          element={
+            <ProtectedRoute allowedRoles={['FACULTY']}>
+              <EditCourses />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/grades"
           element={

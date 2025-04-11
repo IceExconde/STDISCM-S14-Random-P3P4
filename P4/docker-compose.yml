@@ -29,6 +29,16 @@ services:
     ports:
       - "8085:8085"
 
+  editcourses:
+      build: ./editcourses
+      ports:
+        - "8088:8088"
+
+  addcourses:
+      build: ./addcourses
+      ports:
+        - "8089:8089"
+
   viewenrolledcourses:
     build: ./viewenrolledcourses
     ports:
@@ -38,4 +48,3 @@ services:
     build: ./createcourse
     ports:
       - "8087:8087"
-

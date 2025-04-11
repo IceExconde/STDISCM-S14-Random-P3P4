@@ -51,6 +51,18 @@ function Navigation() {
           >
             Courses
           </button>
+          <button
+            onClick={() => navigate('/add-courses')}
+            style={{ margin: '0 5px', padding: '8px 15px' }}
+          >
+            Add New Courses
+          </button>
+          <button
+            onClick={() => navigate('/edit-courses')}
+            style={{ margin: '0 5px', padding: '8px 15px' }}
+          >
+            Edit Courses
+          </button>
           <button 
             onClick={() => navigate('/upload-grades')}
             style={{ margin: '0 5px', padding: '8px 15px' }}

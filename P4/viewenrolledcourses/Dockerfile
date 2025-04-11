@@ -15,4 +15,4 @@ RUN ./mvnw clean package -DskipTests
 EXPOSE 8086
 
 # Run the Spring Boot application with a fixed port
-CMD ["java", "-jar", "target/enroll-0.0.1-SNAPSHOT.jar", "--server.port=8086"]
+CMD ["java", "-jar", "target/viewenrolledcourses-0.0.1-SNAPSHOT.jar", "--server.port=8086"]

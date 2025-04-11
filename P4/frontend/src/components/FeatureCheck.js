@@ -10,12 +10,17 @@ function FeatureCheck({ children, serviceUrl }) {
     const checkService = async () => {
       try {
         const response = await fetch(serviceUrl, {
-          method: 'HEAD' 
+          method: 'GET', // HEAD might not be properly configured
+          mode: 'cors', 
+          headers: {
+            'Content-Type': 'application/json'
+          }
         });
         if (!response.ok) {
           setServiceAvailable(false);
         }
       } catch (error) {
+        console.error('Service check failed:', error);
         setServiceAvailable(false);
       }
     };
