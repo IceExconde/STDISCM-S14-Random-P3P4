@@ -46,4 +46,9 @@ public class CourseController {
     public Course addCourse(@RequestBody Course course) {
         return courseRepository.save(course);
     }
+
+    @GetMapping("/health")
+    public ResponseEntity<String> healthCheck() {
+        return ResponseEntity.ok("Auth service is up and running.");
+    }
 }

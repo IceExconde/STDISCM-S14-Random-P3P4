@@ -39,7 +39,7 @@ function CreateCourse() {
         throw new Error('Failed to create course');
       }
 
-      const data = await response.json();
+      //const data = await response.json();
       alert('Course created successfully!');
       navigate('/courses');
     } catch (err) {

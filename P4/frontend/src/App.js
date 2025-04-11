@@ -7,13 +7,13 @@ import Grades from './pages/Grades';
 import Enroll from './pages/Enroll';
 import UploadGrades from './pages/UploadGrades';
 import ErrorPage from './pages/ErrorPage';
-import EditCourses from './pages/EditCourses';
-import CreateCourse from './pages/CreateCourse';
-import CreateAccount from './pages/CreateAccount';
 import ProtectedRoute from './components/ProtectedRoute';
 import FeatureCheck from './components/FeatureCheck';
+import CreateCourse from './pages/CreateCourse';
+import CreateAccount from './pages/CreateAccount';
 import ViewEnrolledCourses from './pages/ViewEnrolledCourses';
 import FacultyDropCourses from './pages/FacultyDropCourses';
+import EditCourses from './pages/EditCourses';
 
 function App() {
   return (
@@ -23,7 +23,7 @@ function App() {
         <Route 
           path="/login" 
           element={
-            <FeatureCheck serviceUrl="http://localhost:8080/api/auth/health">
+            <FeatureCheck serviceUrl='http://localhost:8080/api/auth/health'>
               <Login />
             </FeatureCheck>
           } 
@@ -31,46 +31,29 @@ function App() {
         <Route 
           path="/register" 
           element={
-            <FeatureCheck serviceUrl="http://localhost:8085/api/auth/health">
+            <FeatureCheck serviceUrl='http://localhost:8085/api/auth/health'>
               <CreateAccount />
             </FeatureCheck>
           } 
         />
+
         <Route path="/error" element={<ErrorPage />} />
         {/* Student Routes */}
         <Route
           path="/courses"
           element={
             <ProtectedRoute allowedRoles={['STUDENT', 'FACULTY']}>
-              <FeatureCheck serviceUrl="http://localhost:8081/view-courses/health">
+              <FeatureCheck serviceUrl='http://localhost:8081/api/auth/health'>
                 <Courses />
               </FeatureCheck>
             </ProtectedRoute>
           }
         />
-
-        <Route
-          path="/create-course"
-          element={
-            <ProtectedRoute allowedRoles={['FACULTY']}>
-              <CreateCourse />
-            </ProtectedRoute>
-          }
-        />      
-        <Route
-          path="/edit-courses"
-          element={
-            <ProtectedRoute allowedRoles={['FACULTY']}>
-              <EditCourses />
-            </ProtectedRoute>
-          }
-        />
-
         <Route
           path="/grades"
           element={
             <ProtectedRoute allowedRoles={['STUDENT']}>
-              <FeatureCheck serviceUrl="http://localhost:8083/api/view-grades/health">
+              <FeatureCheck serviceUrl='http://localhost:8083/api/auth/health'>
                 <Grades />
               </FeatureCheck>
             </ProtectedRoute>
@@ -80,7 +63,7 @@ function App() {
           path="/enroll"
           element={
             <ProtectedRoute allowedRoles={['STUDENT']}>
-              <FeatureCheck serviceUrl="http://localhost:8082/api/enroll/health">
+              <FeatureCheck serviceUrl='http://localhost:8082/api/enroll/health'>
                 <Enroll />
               </FeatureCheck>
             </ProtectedRoute>
@@ -90,7 +73,7 @@ function App() {
           path="/enrolled-courses"
           element={
             <ProtectedRoute allowedRoles={['STUDENT']}>
-              <FeatureCheck serviceUrl="http://localhost:8086/api/view-enrolled/health">
+              <FeatureCheck serviceUrl='http://localhost:8086/api/auth/health'>
                 <ViewEnrolledCourses />
               </FeatureCheck>
             </ProtectedRoute>
@@ -102,7 +85,7 @@ function App() {
           path="/upload-grades"
           element={
             <ProtectedRoute allowedRoles={['FACULTY']}>
-              <FeatureCheck serviceUrl="http://localhost:8084/grades/add/health">
+              <FeatureCheck serviceUrl='http://localhost:8084/api/auth/health'>
                 <UploadGrades />
               </FeatureCheck>
             </ProtectedRoute>
@@ -112,8 +95,18 @@ function App() {
           path="/create-course"
           element={
             <ProtectedRoute allowedRoles={['FACULTY']}>
-              <FeatureCheck serviceUrl="http://localhost:8087/api/create-course/health">
+              <FeatureCheck serviceUrl='http://localhost:8087/api/auth/health'>
                 <CreateCourse />
+              </FeatureCheck>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/edit-courses"
+          element={
+            <ProtectedRoute allowedRoles={['FACULTY']}>
+              <FeatureCheck serviceUrl='http://localhost:8088/api/auth/health'>
+                <EditCourses />
               </FeatureCheck>
             </ProtectedRoute>
           }
@@ -122,7 +115,7 @@ function App() {
           path="/drop-courses"
           element={
             <ProtectedRoute allowedRoles={['FACULTY']}>
-              <FeatureCheck serviceUrl="http://localhost:8090/api/drop-course/health">
+              <FeatureCheck serviceUrl='http://localhost:8090/api/auth/health'>
                 <FacultyDropCourses />
               </FeatureCheck>
             </ProtectedRoute>

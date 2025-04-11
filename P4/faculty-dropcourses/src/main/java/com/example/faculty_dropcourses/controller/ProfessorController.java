@@ -16,4 +16,9 @@ public class ProfessorController {
     public String dropCourse(@PathVariable String profId, @PathVariable String courseId) {
         return professorService.dropCourse(profId, courseId);
     }
+
+    @GetMapping("/health")
+    public ResponseEntity<String> healthCheck() {
+        return ResponseEntity.ok("Auth service is up and running.");
+    }
 }

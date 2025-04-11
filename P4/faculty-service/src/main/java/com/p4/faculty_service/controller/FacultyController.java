@@ -50,4 +50,9 @@ public class FacultyController {
 
         return ResponseEntity.ok(students);
     }
+
+    @GetMapping("/health")
+    public ResponseEntity<String> healthCheck() {
+        return ResponseEntity.ok("Auth service is up and running.");
+    }
 }

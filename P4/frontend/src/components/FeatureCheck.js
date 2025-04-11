@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 function FeatureCheck({ children, serviceUrl }) {
-  const [isChecking, setIsChecking] = useState(true);
+  const [serviceAvailable, setServiceAvailable] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -17,34 +17,24 @@ function FeatureCheck({ children, serviceUrl }) {
         });
 
         if (!response.ok) {
-          throw new Error(`Service returned ${response.status}`);
+          setServiceAvailable(false);
         }
-
-        const data = await response.json();
-        if (data.status !== 'UP') {
-          throw new Error('Service is not healthy');
-        }
-
-        setIsChecking(false);
       } catch (error) {
         setServiceAvailable(false);
       }
     };
 
     checkService();
-  }, [serviceUrl, navigate]);
+  }, [serviceUrl]);
 
-  if (isChecking) {
-    return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh' 
-      }}>
-        <div>Checking service availability...</div>
-      </div>
-    );
+  if (!serviceAvailable) {
+    navigate('/error', { 
+      state: { 
+        message: 'Login service is currently unavailable',
+        service: 'Authentication Service'
+      }
+    });
+    return null;
   }
 
   return children;
