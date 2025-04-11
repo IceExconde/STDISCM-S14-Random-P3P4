@@ -39,3 +39,7 @@ services:
     ports:
       - "8087:8087"
 
+  faculty-dropcourses:
+    build: ./faculty-dropcourses
+    ports:
+      - "8090:8090"
