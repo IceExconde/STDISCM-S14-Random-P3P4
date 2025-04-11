@@ -22,6 +22,7 @@
         <module>createAccount</module>
         <module>viewenrolledcourses</module>
         <module>createcourse</module>
+        <module>faculty-dropcourses</module>
         <module>editcourses</module>
     </modules>
 
