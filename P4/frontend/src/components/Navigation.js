@@ -25,19 +25,19 @@ function Navigation() {
             onClick={() => navigate('/courses')}
             style={{ margin: '0 5px', padding: '8px 15px' }}
           >
-            Courses
+            Available Courses
+          </button>
+          <button 
+            onClick={() => navigate('/enrolled-courses')}
+            style={{ margin: '0 5px', padding: '8px 15px' }}
+          >
+            My Enrolled Courses
           </button>
           <button 
             onClick={() => navigate('/grades')}
             style={{ margin: '0 5px', padding: '8px 15px' }}
           >
-            Grades
-          </button>
-          <button 
-            onClick={() => navigate('/enroll')}
-            style={{ margin: '0 5px', padding: '8px 15px' }}
-          >
-            Enroll
+            My Grades
           </button>
         </>
       )}
@@ -49,7 +49,13 @@ function Navigation() {
             onClick={() => navigate('/courses')}
             style={{ margin: '0 5px', padding: '8px 15px' }}
           >
-            Courses
+            View Courses
+          </button>
+          <button 
+            onClick={() => navigate('/create-course')}
+            style={{ margin: '0 5px', padding: '8px 15px' }}
+          >
+            Create Course
           </button>
           <button 
             onClick={() => navigate('/upload-grades')}
