@@ -6,8 +6,14 @@ function Grades() {
 
   useEffect(() => {
     const jwt = localStorage.getItem('jwt');
-    fetch('http://localhost:8083/view-grades', {
-      headers: { 'Authorization': `Bearer ${jwt}` }
+    const studentId = localStorage.getItem('studentId');
+    fetch('http://localhost:8083/api/view-grades', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${jwt}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ studentId })
     })
     .then(response => {
       if (!response.ok) {

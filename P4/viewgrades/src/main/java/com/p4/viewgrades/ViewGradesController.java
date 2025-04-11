@@ -46,7 +46,7 @@ public class ViewGradesController {
             return new ModifiedGradeDTO(
                     grade.getCourseId(),
                     courseName,
-                    grade.getScore()
+                    grade.getGrade()
             );
         }).toList();
 

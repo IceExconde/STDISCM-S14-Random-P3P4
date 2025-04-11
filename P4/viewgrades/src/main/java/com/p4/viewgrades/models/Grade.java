@@ -13,13 +13,13 @@ public class Grade {
     @Field("studentId")
     private String studentId;
     private String profId;
-    private double score;
+    private double grade;
 
-    public Grade(@NonNull String studentId, @NonNull String courseId, @NonNull double score, @NonNull String profId) {
+    public Grade(@NonNull String studentId, @NonNull String courseId, @NonNull Double grade, @NonNull String profId) {
         this.studentId = studentId;
         this.courseId = courseId;
         this.profId = profId;
-        this.score = score;
+        this.grade = grade;
     }
 
     public String getId() {
@@ -54,11 +54,11 @@ public class Grade {
         this.profId = profId;
     }
 
-    public double getScore() {
-        return score;
+    public Double getGrade() {
+        return grade;
     }
 
-    public void setScore(double score) {
-        this.score = score;
+    public void setGrade(Double grade) {
+        this.grade = grade;
     }
 }
