@@ -119,9 +119,7 @@ function EditCourses() {
     const handleSaveClick = async (course) => {
         try {
             const jwt = localStorage.getItem('jwt');
-            // Use classNbr for API call as that's what the backend expects
             const courseId = course.id || course.courseId || course.classNbr;
-            // Use uniqueId for our frontend state management
             const uniqueId = getStringId(course.uniqueId || course.classNbr);
             
             if (!courseId) {
@@ -130,40 +128,56 @@ function EditCourses() {
             
             const courseFormData = editFormDataMap[uniqueId];
             
+            if (!courseFormData) {
+                throw new Error(`No form data found for course with ID: ${uniqueId}`);
+            }
+            
+            const payload = {
+                classNbr: course.classNbr,
+                course: courseFormData.course,
+                section: courseFormData.section,
+                days: courseFormData.days,
+                time: courseFormData.time,
+                room: courseFormData.room,
+                facultyId: courseFormData.facultyId || course.facultyId
+            };
+            
             console.log("Saving course with ID:", courseId);
-            console.log("Using uniqueId for form data:", uniqueId);
-            console.log("Form data map:", editFormDataMap);
-            console.log("Updated data:", courseFormData);
+            console.log("API endpoint:", `http://localhost:8088/api/edit-courses/${courseId}`);
+            console.log("Request payload:", JSON.stringify(payload, null, 2));
 
             const response = await fetch(`http://localhost:8088/api/edit-courses/${courseId}`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${jwt}`,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 },
-                body: JSON.stringify({
-                    ...courseFormData,
-                    id: courseId,
-                    classNbr: course.classNbr,
-                    courseId: courseId
-                })
+                body: JSON.stringify(payload)
             });
-
+            
+            console.log("Response status:", response.status);
+            
+            const responseText = await response.text();
+            console.log("Response body:", responseText);
+            
             if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
+                throw new Error(`HTTP error! Status: ${response.status}, Response: ${responseText}`);
             }
 
-            const updatedCourse = await response.json();
+            let updatedCourse;
+            try {
+                updatedCourse = JSON.parse(responseText);
+            } catch (e) {
+                console.log("Response was not JSON, using text response:", responseText);
+                updatedCourse = { message: responseText };
+            }
             
-            // Update only the specific course that was edited
             setCourses(prevCourses => 
                 prevCourses.map(c => {
-                    // Strict comparison - only update the exact course that was edited
                     const isSameCourse = 
                         (c.uniqueId && c.uniqueId === course.uniqueId) || 
                         (c.classNbr && course.classNbr && String(c.classNbr) === String(course.classNbr));
-                    
-                    console.log(`Comparing course: ${c.uniqueId || c.classNbr} with edited course: ${course.uniqueId || course.classNbr}, isSameCourse: ${isSameCourse}`);
                     
                     if (isSameCourse) {
                         console.log("Updating course:", c.course, "to:", courseFormData.course);
@@ -189,7 +203,6 @@ function EditCourses() {
             }, 3000);
         } catch (err) {
             console.error('Failed to update course:', err);
-            setError(`Failed to update course.`);
         }
     };
 
@@ -205,11 +218,11 @@ function EditCourses() {
         
         {loading && <p>Loading courses...</p>}
         
-        {/* {error && (
+        {error && (
         <div style={{ color: 'red', margin: '10px 0', padding: '10px', backgroundColor: '#ffeeee', borderRadius: '4px' }}>
             {error}
         </div>
-        )} */}
+        )}
         
         {!loading && !error && courses.length === 0 && (
         <p>No courses assigned to you.</p>
