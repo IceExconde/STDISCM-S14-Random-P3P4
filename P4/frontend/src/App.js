@@ -115,7 +115,7 @@ function App() {
           path="/drop-courses"
           element={
             <ProtectedRoute allowedRoles={['FACULTY']}>
-              <FeatureCheck serviceUrl='http://localhost:8090/professors/health'> correct, not working
+              <FeatureCheck serviceUrl='http://localhost:8090/professors/health'>
                 <FacultyDropCourses />
               </FeatureCheck>
             </ProtectedRoute>
