@@ -4,13 +4,14 @@ import Navigation from '../components/Navigation';
 
 function CreateCourse() {
   const navigate = useNavigate();
+  const facultyId = localStorage.getItem('professorId');
   const [courseData, setCourseData] = useState({
     course: '',
     section: '',
     days: '',
     time: '',
     room: '',
-    facultyId: ''
+    facultyId: facultyId
   });
   const [error, setError] = useState('');
 
@@ -27,6 +28,8 @@ function CreateCourse() {
     setError('');
 
     try {
+      console.log('Faculty ID:', localStorage.getItem("professorId")); // Debugging line
+      console.log('Course data:', courseData); // Debugging line
       const response = await fetch('http://localhost:8087/api/create-course', {
         method: 'POST',
         headers: {
@@ -119,6 +122,19 @@ function CreateCourse() {
             style={{ width: '100%', padding: '8px' }}
           />
         </div>
+
+        {/* <div>
+          <label>Faculty ID:</label>
+          <input
+            type="text"
+            name="facultyId"
+            value={courseData.facultyId}
+            onChange={handleChange}
+            required
+            placeholder="Enter faculty ID"
+            style={{ width: '100%', padding: '8px' }}
+          />
+        </div> */}
 
         <button
           type="submit"
