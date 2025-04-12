@@ -26,6 +26,7 @@ function UploadGrades() {
         if (!response.ok) throw new Error(await response.text());
 
         const data = await response.json();
+        console.log('Courses response:', data);
         setCourses(data);
       } catch (err) {
         setError(err.message);
