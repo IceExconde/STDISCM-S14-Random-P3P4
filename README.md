@@ -10,6 +10,7 @@ place in your preferred directory (then update the module-path below)
 javac --module-path "D:\javafx-sdk-21.0.6\lib" --add-modules javafx.controls,javafx.fxml,javafx.media,javafx.graphics  consumer\*.java producer\*.java
 
 - Execute in different terminal
+
 [Consumer]
 java --module-path "D:\javafx-sdk-21.0.6\lib" --add-modules javafx.controls,javafx.fxml,javafx.media,javafx.graphics consumer.Consumer
 
