@@ -64,6 +64,8 @@ public class EditCourseController {
         logger.info("Fetching courses for professor: {}", professorId);
 
         List<Course> courses = courseRepository.findByFacultyId(professorId);
+
+        logger.info("Called the editcontroller");
         
         if (courses == null || courses.isEmpty()) {
             logger.info("No courses found for professor: {}", professorId);

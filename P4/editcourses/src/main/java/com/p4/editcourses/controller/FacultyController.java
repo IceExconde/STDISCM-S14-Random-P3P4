@@ -1,10 +1,13 @@
 package com.p4.editcourses.controller;
 
+import com.p4.editcourses.EditCourseController;
 import com.p4.editcourses.model.Course;
 import com.p4.editcourses.model.Student;
 import com.p4.editcourses.CourseRepository;
 //import com.p4.editcourses.repository.StudentRepository;
 import com.p4.editcourses.service.FacultyService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +32,8 @@ public class FacultyController {
     // Endpoint to get assigned courses for a professor
     @GetMapping("/{id}/courses")
     public ResponseEntity<List<Course>> getAssignedCourses(@PathVariable String id) {
+        Logger logger = LoggerFactory.getLogger(FacultyController.class);
+        logger.info("called faculty controller");
         List<Course> courses = facultyService.getAssignedCourses(id);
         if (courses.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
