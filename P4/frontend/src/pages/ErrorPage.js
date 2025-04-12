@@ -8,6 +8,12 @@ function ErrorPage() {
   const isLoggedIn = localStorage.getItem('jwt');
   const userRole = localStorage.getItem('userRole');
 
+  const handleLogout = () => {
+    localStorage.removeItem('jwt');
+    localStorage.removeItem('userRole');
+    navigate('/');
+  };
+
   const errorMessage = state?.message || 'The feature you are trying to access is temporarily unavailable.';
 
   const buttonStyle = {
@@ -87,6 +93,12 @@ function ErrorPage() {
                 >
                   Enroll in a Course
                 </button>
+                <button
+                  onClick={handleLogout}
+                  style={buttonStyle}
+                >
+                  Logout
+                </button>
               </>
             )}
             {userRole === 'FACULTY' && (
@@ -120,6 +132,12 @@ function ErrorPage() {
                   style={buttonStyle}
                 >
                   Upload Grades
+                </button>
+                <button
+                  onClick={handleLogout}
+                  style={buttonStyle}
+                >
+                  Logout
                 </button>
               </>
             )}
