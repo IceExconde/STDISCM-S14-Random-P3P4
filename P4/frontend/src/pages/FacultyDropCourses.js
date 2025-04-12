@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Navigation from '../components/Navigation';
 
 function FacultyDropCourses() {
   const [courses, setCourses] = useState([]);
@@ -73,6 +74,7 @@ function FacultyDropCourses() {
 
   return (
     <div style={{ padding: '20px' }}>
+      <Navigation />
       <h2>My Teaching Courses</h2>
       {successMessage && (
         <div style={{ color: 'green', marginBottom: '10px' }}>{successMessage}</div>

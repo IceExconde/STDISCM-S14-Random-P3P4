@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Navigation from '../components/Navigation';
 
 function CreateCourse() {
   const navigate = useNavigate();
@@ -49,6 +50,7 @@ function CreateCourse() {
 
   return (
     <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto' }}>
+      <Navigation />
       <h2>Create New Course</h2>
       {error && <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
       
