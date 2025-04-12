@@ -92,6 +92,6 @@ package com.p4.enroll;
 
     @GetMapping("/health")
     public ResponseEntity<String> healthCheck() {
-        return ResponseEntity.ok("Auth service is up and running.");
+        return ResponseEntity.ok("Enroll service is up and running.");
     }
  }

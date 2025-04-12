@@ -139,11 +139,11 @@ function Login() {
         {loading ? 'Logging in...' : 'Login'}
       </button>
       
-      <div style={{ marginTop: '20px', fontSize: '14px', color: '#555' }}>
+      {/* <div style={{ marginTop: '20px', fontSize: '14px', color: '#555' }}>
         <p>For testing purposes:</p>
-        <p>Student: student@example.com / password</p>
-        <p>Faculty: faculty@example.com / password</p>
-      </div>
+        <p>Student: student_email@mail.com / student123</p>
+        <p>Faculty: faculty_email@mail.com / faculty123</p>
+      </div> */}
       <button onClick={() => navigate('/')} style={{ marginTop: '1rem' }}>
         Back to Home
       </button>

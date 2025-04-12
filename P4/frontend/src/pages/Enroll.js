@@ -58,21 +58,18 @@ function Enroll() {
     })
     .then(response => {
       if (!response.ok) {
-        // Log status and headers for more details
         console.error(`Failed to enroll: ${response.status} ${response.statusText}`);
         console.error('Response Headers:', [...response.headers]);
         
-        // Handle the error response (e.g., 403)
         setMessage('Enrollment failed: You are not authorized to enroll in this course.');
         throw new Error(`Enrollment failed with status: ${response.status}`);
       }
-      return response.json();  // Only parse the body if the response is OK
+      return response.json(); 
     })
     .then(data => {
       console.log('Enrollment response:', data);
       setMessage(data.message || `Successfully enrolled in course: ${courseId}`);
   
-      // Refresh the course list
       return fetch('http://localhost:8081/view-courses', {
         headers: { 'Authorization': `Bearer ${jwt}` }
       });
@@ -88,7 +85,6 @@ function Enroll() {
       }
     })
     .catch(err => {
-      // Log the full error and the status message
       console.error('Enrollment error:', err);
       setMessage(`Enrollment failed: ${err.message}`);
     });

@@ -58,6 +58,6 @@ public class ViewGradesController {
 
     @GetMapping("/health")
     public ResponseEntity<String> healthCheck() {
-        return ResponseEntity.ok("Auth service is up and running.");
+        return ResponseEntity.ok("View Grades service is up and running.");
     }
 }

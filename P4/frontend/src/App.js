@@ -23,7 +23,7 @@ function App() {
         <Route 
           path="/login" 
           element={
-            <FeatureCheck serviceUrl='http://localhost:8080/api/auth/health'>
+            <FeatureCheck serviceUrl='http://localhost:8080/api/auth/health'> working
               <Login />
             </FeatureCheck>
           } 
@@ -31,7 +31,7 @@ function App() {
         <Route 
           path="/register" 
           element={
-            <FeatureCheck serviceUrl='http://localhost:8085/api/auth/health'>
+            <FeatureCheck serviceUrl='http://localhost:8085/api/auth/health'> working
               <CreateAccount />
             </FeatureCheck>
           } 
@@ -43,7 +43,7 @@ function App() {
           path="/courses"
           element={
             <ProtectedRoute allowedRoles={['STUDENT', 'FACULTY']}>
-              <FeatureCheck serviceUrl='http://localhost:8081/view-courses/health'>
+              <FeatureCheck serviceUrl='http://localhost:8081/view-courses/health'> working
                 <Courses />
               </FeatureCheck>
             </ProtectedRoute>
@@ -53,7 +53,7 @@ function App() {
           path="/grades"
           element={
             <ProtectedRoute allowedRoles={['STUDENT']}>
-              <FeatureCheck serviceUrl='http://localhost:8083/api/view-grades/health'>
+              <FeatureCheck serviceUrl='http://localhost:8083/api/view-grades/health'> correct, not working
                 <Grades />
               </FeatureCheck>
             </ProtectedRoute>
@@ -63,7 +63,7 @@ function App() {
           path="/enroll"
           element={
             <ProtectedRoute allowedRoles={['STUDENT']}>
-              <FeatureCheck serviceUrl='http://localhost:8082/api/enroll/health'>
+              <FeatureCheck serviceUrl='http://localhost:8082/api/enroll/health'> correct, not working
                 <Enroll />
               </FeatureCheck>
             </ProtectedRoute>
@@ -73,7 +73,7 @@ function App() {
           path="/enrolled-courses"
           element={
             <ProtectedRoute allowedRoles={['STUDENT']}>
-              <FeatureCheck serviceUrl='http://localhost:8086/api/view-enrolled/health'>
+              <FeatureCheck serviceUrl='http://localhost:8086/api/view-enrolled/health'> correct, not working
                 <ViewEnrolledCourses />
               </FeatureCheck>
             </ProtectedRoute>
@@ -85,7 +85,7 @@ function App() {
           path="/upload-grades"
           element={
             <ProtectedRoute allowedRoles={['FACULTY']}>
-              <FeatureCheck serviceUrl='http://localhost:8084/professors/health'>
+              <FeatureCheck serviceUrl='http://localhost:8084/professors/health'> working
                 <UploadGrades />
               </FeatureCheck>
             </ProtectedRoute>
@@ -95,7 +95,7 @@ function App() {
           path="/create-course"
           element={
             <ProtectedRoute allowedRoles={['FACULTY']}>
-              <FeatureCheck serviceUrl='http://localhost:8087/api/create-course/health'>
+              <FeatureCheck serviceUrl='http://localhost:8087/api/create-course/health'> correct, not working
                 <CreateCourse />
               </FeatureCheck>
             </ProtectedRoute>
@@ -105,7 +105,7 @@ function App() {
           path="/edit-courses"
           element={
             <ProtectedRoute allowedRoles={['FACULTY']}>
-              <FeatureCheck serviceUrl='http://localhost:8088/api/edit-courses/health'>
+              <FeatureCheck serviceUrl='http://localhost:8088/api/edit-courses/health'> working
                 <EditCourses />
               </FeatureCheck>
             </ProtectedRoute>
@@ -115,7 +115,7 @@ function App() {
           path="/drop-courses"
           element={
             <ProtectedRoute allowedRoles={['FACULTY']}>
-              <FeatureCheck serviceUrl='http://localhost:8090/api/professors/health'>
+              <FeatureCheck serviceUrl='http://localhost:8090/professors/health'> correct, not working
                 <FacultyDropCourses />
               </FeatureCheck>
             </ProtectedRoute>

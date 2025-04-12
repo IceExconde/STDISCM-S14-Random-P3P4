@@ -26,10 +26,8 @@ function FeatureCheck({ children, serviceUrl }) {
     checkService();
   }, [serviceUrl]);
 
-  // ⛔ Block rendering until check completes
   if (serviceAvailable === null) return null;
 
-  // ❌ Navigate only after rendering
   if (serviceAvailable === false) {
     navigate('/error/service-unavailable', {
       state: {
@@ -41,7 +39,6 @@ function FeatureCheck({ children, serviceUrl }) {
     return null;
   }
 
-  // ✅ Service is available, render child
   return children;
 }
 
