@@ -120,19 +120,6 @@ function CreateCourse() {
           />
         </div>
 
-        <div>
-          <label>Faculty ID:</label>
-          <input
-            type="text"
-            name="facultyId"
-            value={courseData.facultyId}
-            onChange={handleChange}
-            required
-            placeholder="Enter faculty ID"
-            style={{ width: '100%', padding: '8px' }}
-          />
-        </div>
-
         <button
           type="submit"
           style={{

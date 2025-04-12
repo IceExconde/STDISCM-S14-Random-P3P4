@@ -40,7 +40,6 @@ function Courses() {
           console.log('Parsed data:', data);
         } catch (e) {
           console.error('JSON parse error:', e);
-          setError('Invalid response format from server');
           return;
         }
         
@@ -63,7 +62,7 @@ function Courses() {
         setError('');
       } catch (err) {
         console.error('Failed to load courses:', err);
-        setError(`Failed to load courses: ${err.message}`);
+        setError(`Failed to load courses.`);
         setCourses([]);
       } finally {
         setLoading(false);

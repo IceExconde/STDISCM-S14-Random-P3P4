@@ -46,7 +46,7 @@ function CreateAccount() {
       alert('Registration successful! Please login.');
       navigate('/login');
     } catch (error) {
-      setError(`Registration error: ${error.message}`);
+      setError(`Registration error.`);
     } finally {
       setLoading(false);
     }
