@@ -8,14 +8,7 @@ function EditCourses() {
     const [loading, setLoading] = useState(true);
     const [editingId, setEditingId] = useState(null);
     const [message, setMessage] = useState('');
-    const [editFormData, setEditFormData] = useState({
-    course: '',
-    section: '',
-    days: '',
-    time: '',
-    room: '',
-    facultyId: ''
-    });
+    const [editFormDataMap, setEditFormDataMap] = useState({});
 
     useEffect(() => {
     const fetchProfessorCourses = async () => {
@@ -64,13 +57,19 @@ function EditCourses() {
 
     const handleEditClick = (course) => {
     setEditingId(course.classNbr);
-    setEditFormData({
+    
+    const courseFormData = {
         course: course.course,
         section: course.section,
         days: course.days,
         time: course.time,
         room: course.room,
         facultyId: course.facultyId || ''
+    };
+    
+    setEditFormDataMap({
+        ...editFormDataMap,
+        [course.classNbr]: courseFormData
     });
     };
 
@@ -78,11 +77,15 @@ function EditCourses() {
     setEditingId(null);
     };
 
-    const handleEditFormChange = (e) => {
+    const handleEditFormChange = (e, classNbr) => {
     const { name, value } = e.target;
-    setEditFormData({
-        ...editFormData,
-        [name]: value
+    
+    setEditFormDataMap({
+        ...editFormDataMap,
+        [classNbr]: {
+            ...editFormDataMap[classNbr],
+            [name]: value
+        }
     });
     };
 
@@ -95,8 +98,10 @@ function EditCourses() {
             throw new Error('Course ID not found');
         }
         
+        const courseFormData = editFormDataMap[course.classNbr];
+        
         console.log("Saving course with ID:", courseId);
-        console.log("Updated data:", editFormData);
+        console.log("Updated data:", courseFormData);
 
         const response = await fetch(`http://localhost:8088/api/edit-courses/${courseId}`, {
         method: 'PUT',
@@ -105,7 +110,7 @@ function EditCourses() {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            ...editFormData,
+            ...courseFormData,
             id: courseId,
             classNbr: course.classNbr,
             courseId: courseId
@@ -121,11 +126,11 @@ function EditCourses() {
         setCourses(courses.map(c => 
         c.classNbr === course.classNbr ? {
             ...c,
-            course: editFormData.course,
-            section: editFormData.section,
-            days: editFormData.days,
-            time: editFormData.time,
-            room: editFormData.room
+            course: courseFormData.course,
+            section: courseFormData.section,
+            days: courseFormData.days,
+            time: courseFormData.time,
+            room: courseFormData.room
         } : c
         ));
         
@@ -133,7 +138,6 @@ function EditCourses() {
         setError('');
         setMessage('Course updated successfully');
         
-        // Clear success message after 3 seconds
         setTimeout(() => {
             setMessage('');
         }, 3000);
@@ -186,8 +190,8 @@ function EditCourses() {
                         <input
                             type="text"
                             name="course"
-                            value={editFormData.course}
-                            onChange={handleEditFormChange}
+                            value={editFormDataMap[course.classNbr]?.course || ''}
+                            onChange={(e) => handleEditFormChange(e, course.classNbr)}
                             style={{ width: '100%', padding: '8px' }}
                         />
                         </td>
@@ -195,8 +199,8 @@ function EditCourses() {
                         <input
                             type="text"
                             name="section"
-                            value={editFormData.section}
-                            onChange={handleEditFormChange}
+                            value={editFormDataMap[course.classNbr]?.section || ''}
+                            onChange={(e) => handleEditFormChange(e, course.classNbr)}
                             style={{ width: '100%', padding: '8px' }}
                         />
                         </td>
@@ -205,17 +209,15 @@ function EditCourses() {
                             <input
                             type="text"
                             name="days"
-                            value={editFormData.days}
-                            onChange={handleEditFormChange}
-                            placeholder="Days (e.g. MWF)"
+                            value={editFormDataMap[course.classNbr]?.days || ''}
+                            onChange={(e) => handleEditFormChange(e, course.classNbr)}
                             style={{ width: '60px', padding: '8px' }}
                             />
                             <input
                             type="text"
                             name="time"
-                            value={editFormData.time}
-                            onChange={handleEditFormChange}
-                            placeholder="Time (e.g. 9:00-10:30)"
+                            value={editFormDataMap[course.classNbr]?.time || ''}
+                            onChange={(e) => handleEditFormChange(e, course.classNbr)}
                             style={{ width: '120px', padding: '8px' }}
                             />
                         </div>
@@ -224,8 +226,8 @@ function EditCourses() {
                         <input
                             type="text"
                             name="room"
-                            value={editFormData.room}
-                            onChange={handleEditFormChange}
+                            value={editFormDataMap[course.classNbr]?.room || ''}
+                            onChange={(e) => handleEditFormChange(e, course.classNbr)}
                             style={{ width: '100%', padding: '8px' }}
                         />
                         </td>
