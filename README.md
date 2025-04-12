@@ -45,36 +45,27 @@ The system is composed of 10 microservices:
 - Maven
 
 ### Setup & Installation
-#### 1. Clone the Repository
+#### Clone the Repository
 ```
 git clone https://github.com/your-repo/STDISCM-S14-Random-P3P4.git
 cd STDISCM-S14-Random-P3P4/P4
 ```
 
-#### 2. Backend Setup
-Build and run all microservices using Docker Compose:
-```
-docker-compose up -d
-```
+#### Running Docker Containers:
 
-To build and run individual services:
-```
-cd [service-name]  # e.g., cd jwtlogin
-./mvnw clean package
-java -jar target/[service-name]-0.0.1-SNAPSHOT.jar
-```
+1. Make sure docker is installed and running
+2. Make sure maven is installed on the system
+2. navigate to P4 project directory (root)
+3. Run "mvn clean install -DskipTests"
+4. Run "docker-compose up --build"
 
-#### 3. Frontend Setup
-```
-cd frontend
-npm install
-npm start
-```
-The frontend will be available at http://localhost:3000
+#### Running frontend:
+1. navigate to P4/frontend
+2. run "npm i"
+3. run "npm start App.js"
 
-```
-# To stop service
-docker stop [name] e.g. p4_login_1
+Server should start on localhost:5000 with all backend services running
+Use docker to turn on/off backend services if needed
 
 ```
 
