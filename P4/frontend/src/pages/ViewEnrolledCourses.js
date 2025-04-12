@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Navigation from '../components/Navigation';
 
 function ViewEnrolledCourses() {
   const [enrolledCourses, setEnrolledCourses] = useState([]);
@@ -46,6 +47,7 @@ function ViewEnrolledCourses() {
 
   return (
     <div style={{ padding: '20px' }}>
+      <Navigation />
       <h2>My Enrolled Courses</h2>
       
       {enrolledCourses.length === 0 ? (
