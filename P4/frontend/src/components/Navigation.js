@@ -28,6 +28,12 @@ function Navigation() {
             Available Courses
           </button>
           <button 
+            onClick={() => navigate('/enroll')}
+            style={{ margin: '0 5px', padding: '8px 15px' }}
+          >
+            Enroll Courses
+          </button>
+          <button 
             onClick={() => navigate('/enrolled-courses')}
             style={{ margin: '0 5px', padding: '8px 15px' }}
           >
