@@ -10,7 +10,9 @@ public class Courses {
 
     @Id
     private String id;
-    private String Courses;
+
+    private String course;
+
     private String section;
     private String days;
     private String time;
@@ -23,9 +25,10 @@ public class Courses {
     public Courses() {
     }
 
-    public Courses(String id, String Courses, String section, String days, String time, String room, int count, List<String> studentIds, String facultyId) {
+    public Courses(String id, String course, String section, String days, String time, String room, int count,
+            List<String> studentIds, String facultyId) {
         this.id = id;
-        this.Courses = Courses;
+        this.course = course;
         this.section = section;
         this.days = days;
         this.time = time;
@@ -44,12 +47,12 @@ public class Courses {
         this.id = id;
     }
 
-    public String getCourses() {
-        return Courses;
+    public String getCourse() {
+        return course;
     }
 
-    public void setCourses(String Courses) {
-        this.Courses = Courses;
+    public void setCourse(String course) {
+        this.course = course;
     }
 
     public String getSection() {

@@ -7,6 +7,7 @@ import com.example.faculty_dropcourses.repository.CoursesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -46,13 +47,16 @@ public class ProfessorService {
 
         // Remove the course from the professor's list of course IDs
         professor.getCourseIds().remove(courseId);
-        professorRepository.save(professor);  // Save the updated professor
+        professorRepository.save(professor); // Save the updated professor
 
         // Remove the professor from the course's facultyId
         course.setFacultyId(null);
-        courseRepository.save(course);  // Save the updated course
+        courseRepository.save(course); // Save the updated course
 
         return "Course dropped successfully.";
     }
-}
 
+    public List<Courses> getCoursesByProfessor(String professorId) {
+        return courseRepository.findByFacultyId(professorId);
+    }
+}

@@ -14,7 +14,7 @@ function FacultyDropCourses() {
         const professorId = localStorage.getItem('professorId');
         if (!professorId) throw new Error('Professor ID not found.');
 
-        const response = await fetch(`http://localhost:8084/professors/${professorId}/courses`, {
+        const response = await fetch(`http://localhost:8090/professors/${professorId}/courses`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('jwt')}`
           }
