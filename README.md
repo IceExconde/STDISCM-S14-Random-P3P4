@@ -66,7 +66,3 @@ cd STDISCM-S14-Random-P3P4/P4
 
 Server should start on localhost:5000 with all backend services running
 Use docker to turn on/off backend services if needed
-
-```
-
-When a service is down, only the specific feature it supports becomes unavailable, while the rest of the system continues to function. The frontend provides clear error messages indicating which service is unavailable.
