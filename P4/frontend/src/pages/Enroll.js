@@ -96,7 +96,7 @@ function Enroll() {
       <Navigation />
       <h2>Enroll in Courses</h2>
       
-      <div style={{ marginBottom: '20px' }}>
+      {/* <div style={{ marginBottom: '20px' }}>
         <h3>Available Courses</h3>
         {courses.length > 0 ? (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -128,7 +128,7 @@ function Enroll() {
         ) : (
           <p>No courses available.</p>
         )}
-      </div>
+      </div> */}
       
       <div style={{ marginTop: '20px' }}>
         <h3>Enroll in a Course</h3>
