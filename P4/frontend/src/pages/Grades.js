@@ -23,13 +23,7 @@ function Grades() {
     })
     .then(data => {
       console.log('Grades response:', data);
-      if (data && data.data) {
-        setGrades(data.data);
-      } else if (Array.isArray(data)) {
-        setGrades(data);
-      } else {
-        setGrades([]);
-      }
+      setGrades(data.grades)
     })
     .catch(err => {
       console.error('Failed to load grades:', err);
@@ -43,7 +37,7 @@ function Grades() {
       {grades.length > 0 ? (
         <ul>
           {grades.map(grade => (
-            <li key={grade.id}>{grade.courseName}: {grade.grade}</li>
+            <li key={grade.classNbr}>{grade.courseName}: {grade.score}</li>
           ))}
         </ul>
       ) : (
