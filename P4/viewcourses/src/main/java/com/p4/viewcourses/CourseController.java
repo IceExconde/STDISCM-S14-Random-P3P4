@@ -49,6 +49,6 @@ public class CourseController {
 
     @GetMapping("/health")
     public ResponseEntity<String> healthCheck() {
-        return ResponseEntity.ok("Auth service is up and running.");
+        return ResponseEntity.ok("View Course service is up and running.");
     }
 }

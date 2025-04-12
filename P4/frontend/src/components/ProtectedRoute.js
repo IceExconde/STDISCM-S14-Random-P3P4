@@ -15,6 +15,7 @@ function ProtectedRoute({ children, allowedRoles }) {
       return <Navigate to="/upload-grades" replace />;
     } else {
       return <Navigate to="/courses" replace />;
+      
     }
   }
 

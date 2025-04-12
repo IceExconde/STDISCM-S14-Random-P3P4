@@ -43,7 +43,7 @@ function App() {
           path="/courses"
           element={
             <ProtectedRoute allowedRoles={['STUDENT', 'FACULTY']}>
-              <FeatureCheck serviceUrl='http://localhost:8081/api/auth/health'>
+              <FeatureCheck serviceUrl='http://localhost:8081/view-courses/health'>
                 <Courses />
               </FeatureCheck>
             </ProtectedRoute>
@@ -53,7 +53,7 @@ function App() {
           path="/grades"
           element={
             <ProtectedRoute allowedRoles={['STUDENT']}>
-              <FeatureCheck serviceUrl='http://localhost:8083/api/auth/health'>
+              <FeatureCheck serviceUrl='http://localhost:8083/api/view-grades/health'>
                 <Grades />
               </FeatureCheck>
             </ProtectedRoute>
@@ -73,7 +73,7 @@ function App() {
           path="/enrolled-courses"
           element={
             <ProtectedRoute allowedRoles={['STUDENT']}>
-              <FeatureCheck serviceUrl='http://localhost:8086/api/auth/health'>
+              <FeatureCheck serviceUrl='http://localhost:8086/api/view-enrolled/health'>
                 <ViewEnrolledCourses />
               </FeatureCheck>
             </ProtectedRoute>
@@ -85,7 +85,7 @@ function App() {
           path="/upload-grades"
           element={
             <ProtectedRoute allowedRoles={['FACULTY']}>
-              <FeatureCheck serviceUrl='http://localhost:8084/api/auth/health'>
+              <FeatureCheck serviceUrl='http://localhost:8084/professors/health'>
                 <UploadGrades />
               </FeatureCheck>
             </ProtectedRoute>
@@ -95,7 +95,7 @@ function App() {
           path="/create-course"
           element={
             <ProtectedRoute allowedRoles={['FACULTY']}>
-              <FeatureCheck serviceUrl='http://localhost:8087/api/auth/health'>
+              <FeatureCheck serviceUrl='http://localhost:8087/api/create-course/health'>
                 <CreateCourse />
               </FeatureCheck>
             </ProtectedRoute>
@@ -105,7 +105,7 @@ function App() {
           path="/edit-courses"
           element={
             <ProtectedRoute allowedRoles={['FACULTY']}>
-              <FeatureCheck serviceUrl='http://localhost:8088/api/auth/health'>
+              <FeatureCheck serviceUrl='http://localhost:8088/api/edit-courses/health'>
                 <EditCourses />
               </FeatureCheck>
             </ProtectedRoute>
@@ -115,7 +115,7 @@ function App() {
           path="/drop-courses"
           element={
             <ProtectedRoute allowedRoles={['FACULTY']}>
-              <FeatureCheck serviceUrl='http://localhost:8090/api/auth/health'>
+              <FeatureCheck serviceUrl='http://localhost:8090/api/professors/health'>
                 <FacultyDropCourses />
               </FeatureCheck>
             </ProtectedRoute>
