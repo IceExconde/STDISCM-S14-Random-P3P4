@@ -59,10 +59,9 @@ function Enroll() {
     .then(response => {
       if (!response.ok) {
         console.error(`Failed to enroll: ${response.status} ${response.statusText}`);
-        console.error('Response Headers:', [...response.headers]);
-        
-        setMessage('Enrollment failed: You are not authorized to enroll in this course.');
-        throw new Error(`Enrollment failed with status: ${response.status}`);
+        return response.json().then(errorData => {
+          throw new Error(errorData.message || `Enrollment failed with status: ${response.status}`);
+        });
       }
       return response.json(); 
     })
@@ -131,7 +130,6 @@ function Enroll() {
       </div> */}
       
       <div style={{ marginTop: '20px' }}>
-        <h3>Enroll in a Course</h3>
         <input
           type="text"
           value={courseId}
