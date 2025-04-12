@@ -3,6 +3,7 @@ package com.example.faculty_dropcourses.controller;
 import com.example.faculty_dropcourses.service.ProfessorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
 
 @RestController
 @RequestMapping("/professors")
