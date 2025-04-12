@@ -52,7 +52,7 @@ function EditCourses() {
         setError('');
         } catch (err) {
         console.error('Failed to load professor courses:', err);
-        setError(`Failed to load courses: ${err.message}`);
+        setError(`Failed to load courses.`);
         setCourses([]);
         } finally {
         setLoading(false);
@@ -86,13 +86,17 @@ function EditCourses() {
     });
     };
 
-    const handleSaveClick = async (courseId) => {
+    const handleSaveClick = async (course) => {
     try {
         const jwt = localStorage.getItem('jwt');
-        const professorId = localStorage.getItem('professorId');
-        console.log("ProfessorID: ", professorId);
-        console.log("All courses:", courses);
+        const courseId = course.id || course.courseId || course.classNbr;
         
+        if (!courseId) {
+            throw new Error('Course ID not found');
+        }
+        
+        console.log("Saving course with ID:", courseId);
+        console.log("Updated data:", editFormData);
 
         const response = await fetch(`http://localhost:8088/api/edit-courses/${courseId}`, {
         method: 'PUT',
@@ -100,7 +104,12 @@ function EditCourses() {
             'Authorization': `Bearer ${jwt}`,
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify(editFormData)
+        body: JSON.stringify({
+            ...editFormData,
+            id: courseId,
+            classNbr: course.classNbr,
+            courseId: courseId
+        })
         });
 
         if (!response.ok) {
@@ -109,17 +118,28 @@ function EditCourses() {
 
         const updatedCourse = await response.json();
         
-        setCourses(courses.map(course => 
-        course.courseId === courseId ? updatedCourse : course
+        setCourses(courses.map(c => 
+        c.classNbr === course.classNbr ? {
+            ...c,
+            course: editFormData.course,
+            section: editFormData.section,
+            days: editFormData.days,
+            time: editFormData.time,
+            room: editFormData.room
+        } : c
         ));
         
         setEditingId(null);
         setError('');
         setMessage('Course updated successfully');
-        window.location.reload()
+        
+        // Clear success message after 3 seconds
+        setTimeout(() => {
+            setMessage('');
+        }, 3000);
     } catch (err) {
         console.error('Failed to update course:', err);
-        setError(`Failed to update course: ${err.message}`);
+        setError(`Failed to update course.`);
     }
     };
 
@@ -211,7 +231,7 @@ function EditCourses() {
                         </td>
                         <td style={{ padding: '12px' }}>
                         <button 
-                            onClick={() => handleSaveClick(course.id)}
+                            onClick={() => handleSaveClick(course)}
                             style={{ 
                             marginRight: '8px',
                             padding: '6px 12px',
