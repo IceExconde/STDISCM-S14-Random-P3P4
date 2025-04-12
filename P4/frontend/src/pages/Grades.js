@@ -33,7 +33,6 @@ function Grades() {
     })
     .catch(err => {
       console.error('Failed to load grades:', err);
-      alert('Failed to load grades: ' + err);
     });
   }, []);
 
