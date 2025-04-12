@@ -10,7 +10,6 @@ function ViewEnrolledCourses() {
       try {
         const jwt = localStorage.getItem('jwt');
         
-        // Log the request details
         console.log('Making request to:', 'http://localhost:8086/api/view-enrolled');
         console.log('With auth header:', `Bearer ${jwt}`);
 

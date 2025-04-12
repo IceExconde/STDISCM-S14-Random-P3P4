@@ -38,7 +38,7 @@ function FeatureCheck({ children, serviceUrl }) {
     });
     return null;
   }
-  
+
   return children;
 }
 
